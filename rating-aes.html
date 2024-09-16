@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -62,11 +61,17 @@
         .image-container {
             text-align: center;
             margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+            /* Set a fixed height */
         }
 
         .image-container img {
             max-width: 100%;
-            max-height: 400px;
+            max-height: 100%;
+            object-fit: contain;
             border-radius: 10px;
         }
 
@@ -224,6 +229,30 @@
                 max-height: 95vh;
             }
         }
+
+        .rating-options {
+            display: flex;
+            justify-content: space-between;
+            width: 60%;
+        }
+
+        .rating-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .rating-number {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .rating-options label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -231,7 +260,7 @@
     <div class="welcome-page" id="welcomePage">
         <h1>Image Labeling Task</h1>
         <div class="instructions">
-            <p>Welcome to our image labeling session! You will be evaluating 500 images based on the criteria outlined
+            <p>Welcome to our image labeling session! You will be evaluating 620 images based on the criteria outlined
                 below:</p>
             <ul>
                 <li>Rate each image on a scale from 1 to 7 for its <span
@@ -261,8 +290,8 @@
         </div>
         <div id="ratingScales"></div>
         <div class="navigation">
-            <button id="prevButton" onclick="showPreviousImage()">Previous</button>
-            <button id="nextButton" onclick="showNextImage()">Next</button>
+            <button id="prevButton" onclick="showPreviousItem()">Previous</button>
+            <button id="nextButton" onclick="showNextItem()">Next</button>
         </div>
     </div>
 
@@ -271,7 +300,7 @@
             <span class="close">&times;</span>
             <h1 style="text-align: center;">Image Labeling Task</h1>
             <div class="instructions">
-                <p>Welcome to our image labeling session! You will be evaluating 500 images based on the criteria
+                <p>Welcome to our image labeling session! You will be evaluating 620 images based on the criteria
                     outlined below:</p>
                 <ul>
                     <li>Rate each image on a scale from 1 to 7 for its <span
@@ -318,10 +347,862 @@
         let prolificId = '';
         let seed;
         let startTime, endTime;
+        let attentionChecks = [];
 
         const scales = [
             { name: 'Aesthetics', label: 'Aesthetics' },
         ];
+
+        function generateSessionId() {
+            const timestamp = Date.now().toString(36);
+            const randomStr = Math.random().toString(36).substring(2, 7);
+            return `${timestamp}-${randomStr}`;
+        }
+
+        function generateAttentionChecks() {
+            const totalItems = images.length + 20; // 600 images + 20 attention checks
+            const numChecks = 20;
+            const positions = [];
+
+            while (positions.length < numChecks) {
+                const position = Math.floor(Math.random() * totalItems);
+                if (!positions.includes(position)) {
+                    positions.push(position);
+                }
+            }
+
+            positions.sort((a, b) => a - b);
+
+            attentionChecks = positions.map(position => ({
+                position,
+                value: Math.floor(Math.random() * 7) + 1
+            }));
+
+            // Insert attention checks into the images array
+            attentionChecks.forEach(check => {
+                images.splice(check.position, 0, { isAttentionCheck: true, value: check.value });
+            });
+        }
+
+        function loadImages() {
+            const filenames = [
+                '00f93176-ff27-4b12-98e6-68021d987636.png',
+                '00ffe4cf-b279-4a85-9779-966c1a2b2dcc.png',
+                '011e6666-0ca8-41fd-b056-73e076a929ca.png',
+                '0139def5-d3d2-4a61-8b69-5d38cf543373.png',
+                '01a234d6-60a2-4ab1-a148-05dc060ac63a.png',
+                '01ae42f6-ae55-4f9e-816c-cf60a29c2655.png',
+                '033241c2-d8d5-4562-8d04-cc0b90ce0a17.png',
+                '03b80918-f4ca-4104-bef6-7647f8c654d4.png',
+                '04207398-98d4-4c40-b378-851d63d30dac.png',
+                '04cc40a8-e1c2-425b-a485-7ee2eaaa223d.png',
+                '04d628fa-2e29-472b-86f2-f762d3bacba3.png',
+                '0586d5bc-2be2-40d9-ab81-96932282ed6f.png',
+                '061dd489-f4eb-47cb-8aac-dd713a1d7f5a.png',
+                '067088f4-622b-4180-a23f-d28272500a78.png',
+                '06826553-3a51-4e79-bda9-58faa18194f5.png',
+                '07ace063-3d7a-44d6-bb47-b6c698a109aa.png',
+                '081bf528-f0b7-4bd3-b0b3-54c44f702138.png',
+                '08867c9c-c386-4ed7-a59d-2d12117ada1a.png',
+                '0970e317-9ddf-4a37-bd2e-a5d07cafe43a.png',
+                '09addfda-9b9a-4e89-b5d6-31d3a81c1855.png',
+                '09e4c107-23f9-41b1-a467-d68281950d51.png',
+                '0a598ddd-3701-4e5e-a36a-674ab9100a06.png',
+                '0b202fdc-2d2a-478e-a66e-5b74e748fcbb.png',
+                '0b911d79-7770-4787-ab2c-68e87e60c2b3.png',
+                '0be676b3-1296-49dc-a6f7-5e5e8c8c1d83.png',
+                '0c58ff71-95c8-441e-9e64-8ae8e1f78b3e.png',
+                '0d1edcd1-0e2e-4c16-abca-ab3ca909915d.png',
+                '0d389ae7-7943-4634-89d1-dd87f0de3b7e.png',
+                '0d45a7b8-a5ed-4f01-aa9c-1d398aea6c36.png',
+                '0d5266b7-f271-406e-8059-5dccbd0dc38c.png',
+                '0d99c2dc-2727-4b6c-9986-2347a82b63d5.png',
+                '0dbbf743-a2c1-404c-8d01-832a73b81cda.png',
+                '0e0213fa-3a8b-4a74-b34f-a7701a6dc457.png',
+                '0e2da843-a624-4314-a476-c15d63d722ec.png',
+                '0e563881-1282-4466-a094-2d8032977c0f.png',
+                '0eaa5c16-8ddc-4cec-b00a-67008d70346c.png',
+                '0f24c87a-a709-4f5b-9a8a-93afec58bb6a.png',
+                '0fe28334-34c4-472a-9b03-cb0719344c24.png',
+                '10736c34-7e76-4430-936c-5279f1b70f97.png',
+                '127453b1-0aa6-4ba1-9006-106d9e5acda6.png',
+                '12cf1011-5625-414a-b0a3-82f9267d309c.png',
+                '12d7fcf6-9934-4bdb-b14b-f9f9652c8f8e.png',
+                '142941e4-a302-498c-af56-a72430cd453d.png',
+                '14e2e2a2-b12b-40f9-9d91-4ddc2858bb1e.png',
+                '15796a47-7b6d-437f-a2df-7742b5b1b8ea.png',
+                '16be7f10-cf82-4c0d-84d3-fdb1a6c1b92d.png',
+                '17133e6c-f58d-44b1-938d-2da16b305765.png',
+                '171a6be7-5543-4f91-86de-ce51059c50fa.png',
+                '172bc529-79b8-4d1a-9f04-e82553975a8c.png',
+                '17f4f549-c647-4561-bb38-ff8434912994.png',
+                '182f08ef-a57e-4c1c-8da1-c139e83cf488.png',
+                '1869d956-707f-4680-950e-a291d35d8c01.png',
+                '19af5e36-f5c9-4e80-8db4-b45c2001bf88.png',
+                '19e66238-cd29-44f3-b04f-eb660d5f7c16.png',
+                '1a358820-e113-4fab-ba5c-fec2c6526438.png',
+                '1a40f81f-aaef-429c-8883-c7132d488c85.png',
+                '1a4c7cf5-ed63-4794-ba0d-ca30a486a6eb.png',
+                '1a7bd36f-87b6-4f2a-8e77-10b75e784a33.png',
+                '1a898eba-e19c-428f-b3d4-3e376f243167.png',
+                '1af08316-edc1-4e36-96e3-83858ed31f87.png',
+                '1b31f967-f53c-4cbd-8b66-11b29d49f427.png',
+                '1b586be7-620d-4cba-8b21-0fa24c5eb73b.png',
+                '1b721699-ba9d-4a04-a6e4-9386d6077385.png',
+                '1be3ce82-3e66-4b4a-9f09-37f3872ded19.png',
+                '1c3ca0f6-9bfb-46fb-b6e5-08a3d31fe529.png',
+                '1c9965f0-7224-4e83-baeb-76aa3b36acb2.png',
+                '1c9d6a2f-f0cc-4a27-939b-4a6d073c0af7.png',
+                '1cdb3f38-8e88-4457-a872-bc46a7829bf2.png',
+                '1d10cf2c-f276-48a3-ad01-411fe13171c5.png',
+                '1d52f500-1923-46bf-878e-f43b5e687864.png',
+                '1d812b70-25ea-4fee-8e01-745a8d16ba9f.png',
+                '1d97f83b-29e5-4d18-ad94-dde08364cb6b.png',
+                '1da0251f-a851-4125-bd5d-b318e524e593.png',
+                '1dcf2efb-f4e5-460d-a2c3-c7c69490a243.png',
+                '1edb53d6-0e98-4056-9973-6a63d7dac567.png',
+                '1fc33ce0-3b3f-4687-b24e-ae549491ed80.png',
+                '211e47fc-ca50-4404-a179-0908f4d1164b.png',
+                '22796910-0f57-4cef-aa9b-2dfed6a2b927.png',
+                '232e357e-55cb-4452-ae44-67567571cb7e.png',
+                '237d3902-ec29-44e3-9103-edd43534b939.png',
+                '238c49de-ff54-435d-a99b-a7fbe5a6d35e.png',
+                '239907f9-c9ea-4c66-9762-c0456a843ab8.png',
+                '246f35ea-f927-4e28-b790-dd746ab5e7ef.png',
+                '249a132e-e045-47a8-aefa-f1a4ffdeca49.png',
+                '24a29513-0d3c-4f66-8190-3d33aeab976f.png',
+                '24cc5e8e-7c78-4b34-91e5-4f99fc7e1c25.png',
+                '24ef0142-a727-4e36-9bce-3b0c8f03feac.png',
+                '261c3033-8bbf-4a64-9e0e-cee4f5b5ec83.png',
+                '26bc4338-42fb-4989-bb58-78e186d1e54c.png',
+                '281842a5-d87f-49cb-8a37-2b8c4602435f.png',
+                '28192620-839e-4422-8a15-ea3d9f24b21e.png',
+                '28460896-bad2-4e9f-9f45-bc731336595e.png',
+                '2895bc29-c30f-4700-a572-34b8752d6160.png',
+                '28e9c421-3b60-42a0-8fa8-c86eb7d8c44d.png',
+                '2942868d-37ca-4553-943b-b9da04519c60.png',
+                '298425ee-5f4b-4fa7-8f9c-5354fbc4430c.png',
+                '29f9c437-f639-4be0-9ca3-6b37b3447d57.png',
+                '2b23d05f-fcc7-49f0-a0ce-5d6986682ef6.png',
+                '2cb4f6d3-cfd7-4f39-bbb4-f838eaad1e7e.png',
+                '2d7d315c-3057-498d-a59a-4561c156e847.png',
+                '2dcfeec7-55bf-4dcf-b240-c40b4af0a88f.png',
+                '2e224ddd-d3b0-4242-b5c1-7da8d47c49c2.png',
+                '2e78263f-a8f2-4a57-9220-4ee2dd59c18a.png',
+                '2fdc6365-0ae1-4347-83e9-b166a80c4fd9.png',
+                '3011467b-ccc0-45c3-9569-13e6df540eb9.png',
+                '30c3fea9-680b-45b4-bd97-16f57d90d755.png',
+                '30db1950-f71f-4830-951d-0c2a1a6272e2.png',
+                '3181d39b-2ded-4834-b5fd-e060b64dac5e.png',
+                '33924549-8ec3-4e47-b1a5-6382495a49b4.png',
+                '3461e362-ab73-4b5e-9e9f-5fe305755c71.png',
+                '34dd09ff-a352-4dee-b886-a08f1f6ce99f.png',
+                '360eb467-7987-4c07-87ee-94eab5f89f47.png',
+                '36801c2e-4b97-4963-9129-2c53e82bb86e.png',
+                '36a9c754-b8da-41b6-a868-65843b355c04.png',
+                '36b7a7ed-87d6-458f-8827-a4673f622ac2.png',
+                '3920df03-17ce-49fd-a09a-b344f86e2c20.png',
+                '39dc8fdb-63c3-46e6-b72a-9d5d732c059a.png',
+                '3b0e5d79-2058-443b-a06c-a2aec08365e4.png',
+                '3dcfa00c-c940-4118-9ade-b305ca225397.png',
+                '3e1c2aec-6088-432a-9e2e-56f366e85d92.png',
+                '3eabd18b-2b7f-4cd5-be72-fc5a83aff567.png',
+                '3f1ff6a6-bcbf-4e8a-b9dc-4a9d2e898fa3.png',
+                '3fd5a4f8-0bb1-4dbc-9d89-a5dc44d4677f.png',
+                '3fd74a60-c5df-4d24-89c8-f0be0772f76c.png',
+                '407d92d1-e06a-4f5b-b200-1d85e62957c9.png',
+                '407ecab4-267c-4cad-9706-898373e363b5.png',
+                '40f525e5-a5b4-4f2f-9d99-6e0f1d8376e6.png',
+                '41a8fb0f-84e0-403c-92c1-d238bad56766.png',
+                '41b11920-189e-47d3-9a8d-16e2ccbd44bc.png',
+                '4220c0bc-e26a-4c10-90d2-24f6a81bf2a5.png',
+                '429a1187-c5c2-4b58-b01f-d0f2c4935ce6.png',
+                '43070f6c-acf9-41b6-9a75-edfc671cd8bb.png',
+                '434213f2-e3fc-43f2-b15f-3506f11ed67b.png',
+                '4371a5d6-6c8c-4b48-b980-49b903ae0d9a.png',
+                '43738131-532e-4165-9b3f-46b5091b9e08.png',
+                '44ffa1ba-d043-48cb-9875-01eef2fb31be.png',
+                '450fabee-5def-481a-aebe-1cfa87e52fbf.png',
+                '451a9840-36d3-4d36-b152-f2c5c1a05bc0.png',
+                '453e201c-becb-416d-9a09-d1d77b696e13.png',
+                '455f6423-bee5-4753-924c-e75c3998a228.png',
+                '460252f5-071f-48b3-bd42-4f76428419df.png',
+                '4685d55a-4899-4931-a933-0634ef08b3f0.png',
+                '47b69839-2f23-4d2e-8b98-1b8e96586a37.png',
+                '487105d7-4aed-42fc-b4df-62ca7594087c.png',
+                '488d209d-9a66-4838-9d7d-00155fe49e33.png',
+                '48af500f-4d09-47ac-9797-061bb0029de1.png',
+                '4906c12b-99ad-4e1b-a70a-baa8bb49cf32.png',
+                '4930f1a9-4c7c-4e74-937d-7f9d9b4e35b0.png',
+                '496c11ac-bf5f-42f0-90fb-853f84203114.png',
+                '497efd30-0df8-4bd7-8328-7f343bce85c0.png',
+                '4981be82-2f27-4ba0-9f0c-ce332427e719.png',
+                '49c7d172-3122-410c-a5bb-35f42b1362b7.png',
+                '49eeb07a-d8cc-4e4c-9842-18299052000a.png',
+                '4a75ecae-ee59-4da7-897a-4b1fa95e7aa6.png',
+                '4aa430b4-7291-4f20-a466-9cb84c1660e6.png',
+                '4af6a638-b154-48c6-8fea-d29559eda2cf.png',
+                '4b352804-8d61-4562-b06c-e22ebd3cad00.png',
+                '4b78dde5-a270-48fa-9674-a7b870690693.png',
+                '4bb9f934-fcb8-495c-9721-8bd87a323177.png',
+                '4bfcd8c7-c45f-4d28-850b-24fb0d900c6d.png',
+                '4c0d3c8c-15e5-4429-9c3d-ab2b8ff7eafc.png',
+                '4c2f4bd6-6caa-4561-8e93-fd94b1e88d67.png',
+                '4c47f49c-30ed-437a-9178-e78f009b104a.png',
+                '4d04bf01-d2cd-4aa6-88ec-bdc7a7d9db21.png',
+                '4d2bbb51-547b-4ec2-98ac-2fb25ae58086.png',
+                '4d3b7a0a-b5fe-464a-8da2-2ee99c095663.png',
+                '4d668e7b-b3d5-45e1-9ea5-f5484dc6252d.png',
+                '4dbb57a5-a94a-4c0f-9e37-4dcfe80967d9.png',
+                '4dc366dc-5050-44e4-b839-9f388e0e9b34.png',
+                '4eb86be4-f9f9-4786-a9cc-7f93010f32f3.png',
+                '4f6a1930-4ac8-429e-af3c-f77868af0173.png',
+                '4f987771-7246-4a78-8fd6-f1428360dcdb.png',
+                '5023a042-91a8-4c3a-8a19-8a46a18e618f.png',
+                '506d6e36-91b8-4cd7-851a-734d3972a8d3.png',
+                '51127ffa-a5d3-46e2-8033-b3f5b047140e.png',
+                '51532172-f26c-4fdf-ad8f-64867f320b3d.png',
+                '51a15589-1bc0-440e-b800-f5dd5ccdc501.png',
+                '52660334-03d5-4ac2-af35-d8537c218ea2.png',
+                '531e6e79-60dd-4d10-b9e1-7646afba586c.png',
+                '532ce7d0-a00a-4407-b626-fe9ea1f6a34b.png',
+                '544327b6-3e3d-41a6-8325-b35a00ca85ce.png',
+                '54b49255-b6cc-48c0-8bbd-19c31781b61d.png',
+                '55eea983-c454-4841-89b9-64b9f6f2399e.png',
+                '56a71039-e9f7-46b4-9ad0-25cafdc3a93a.png',
+                '56ffd637-f5ec-4c90-ae9a-419d227b63ef.png',
+                '5730769e-47b3-4099-94fa-2bd6a9519c85.png',
+                '57974175-2bd7-44cc-a337-a0ed7198c719.png',
+                '58771788-7feb-4fae-bac8-3ef837ab179c.png',
+                '587b6221-bc19-4521-bc26-60edc0248b8d.png',
+                '5889ede0-179f-405c-8130-8f79a376f4d1.png',
+                '595f1250-ce41-499a-97b8-93831129762c.png',
+                '59aeb0e6-3a3c-4aea-a802-832ba7b3d510.png',
+                '5a5db720-4d68-4d27-8ba2-9dda8ee58d12.png',
+                '5a7a69fb-e980-4ab6-ada3-c2d18b5591af.png',
+                '5ad2354c-371f-4133-87a0-69db75bb894c.png',
+                '5b4095f6-b34c-4627-bcca-c3300b053233.png',
+                '5bb6e345-601f-4233-a4b8-cd68879c63ba.png',
+                '5c0d2499-5d39-4128-83ba-185d10d5957f.png',
+                '5c4d0291-0f82-49dc-a08e-3f3f7e9571d1.png',
+                '5c96f6b2-47d2-4458-9d9c-0dfd77e7c28e.png',
+                '5d5c199c-0b78-4a60-a594-e2a87a6eb196.png',
+                '5d677e24-3ea5-49fb-bece-3791fd3a9d0f.png',
+                '5e6da5d9-10bc-4909-bec4-cb4e58727051.png',
+                '5eb43f2b-675e-4f96-ab3d-7d758cfa636b.png',
+                '619ae4c6-22b3-4c49-a117-46b4de01944d.png',
+                '629f4af4-a0be-4d31-bc70-600da8af780c.png',
+                '63251d7c-9500-4bba-a3ac-fbfd9bc38193.png',
+                '6354e67f-b724-4ec1-b035-f6557ba3cb98.png',
+                '63cd7041-77ae-417e-9656-5fcf412cf89e.png',
+                '64904756-3c9e-4606-ba5e-d46cba81ae93.png',
+                '64c0a9b0-df65-4032-b320-2c8fc79da24f.png',
+                '65619393-d14e-40cf-bb21-21a3eb955242.png',
+                '6625cb1e-093c-4188-a644-ba75188221fb.png',
+                '66c57575-8950-4f10-aa9f-2bc26df135b4.png',
+                '67421e09-3b23-479b-ab28-362a951f8450.png',
+                '67cb5d2c-542c-4dc2-a32a-2b6e986a0ed1.png',
+                '685035f6-3615-4be0-97c3-e8216b808cb7.png',
+                '6863cdd6-bdc7-421f-9167-e510ff7729da.png',
+                '68f2069d-8860-459b-82a8-0d67e5f97725.png',
+                '693a3f19-c3da-40ad-8780-3ec5fee93122.png',
+                '6aaf336e-7e0c-4e93-9ec9-158548a4cc05.png',
+                '6b2d4943-62da-47de-a6f6-77a521b7a2da.png',
+                '6bb27bc3-23f7-48ee-ba06-d8227cdd21e7.png',
+                '6bfd94b4-19b7-48f3-985e-fff3a0b81d3b.png',
+                '6c33bf70-c8b0-49e8-8985-f4b042ce30cc.png',
+                '6ea97faf-e68f-4e1a-996d-0d5471ddb806.png',
+                '6ef67868-a578-4b22-9026-65a5fa8742e4.png',
+                '7005c72a-c9fa-443c-b38b-0d68c3cf3d2f.png',
+                '700aaf57-feb8-4ed1-97cd-2ff1860a581c.png',
+                '7065f0c5-6164-4cf0-b6c4-7ba25c384847.png',
+                '70758ec5-0990-4d4d-8444-10e301ab774d.png',
+                '70f92077-dec4-490c-a396-80b4f9e4089b.png',
+                '72042769-b561-47b3-a24a-37f0095e77d3.png',
+                '72ac2c9e-ae44-482b-8b26-6c9d8b75fd8e.png',
+                '737924bb-61fa-4f2e-b901-711c2d6c55d9.png',
+                '7391b2b9-93a1-4f2c-899b-59d0399c7520.png',
+                '73a3b4d9-4621-4302-9548-cbc0f5f47edc.png',
+                '73a6a250-42fe-40d1-9c5d-828694ad3f0c.png',
+                '73b8757b-c216-4cc0-a6a5-a0491291a0f1.png',
+                '7491fa1d-7013-44aa-8b8c-d0dd3fb4f5a4.png',
+                '7499b291-781d-442e-b0e0-b4360d945084.png',
+                '74b50b81-9af0-45d9-9cf4-d97108937e45.png',
+                '75577117-91f7-4723-adb6-438a581c462b.png',
+                '757fdb47-5d60-4012-8007-ee250fcd3359.png',
+                '759c772e-f4e8-4bee-ae7a-afa941d975c0.png',
+                '75a5c2e3-810d-4449-8e0e-44770e46a352.png',
+                '75ed2846-c820-4b28-98e4-71f18dbce872.png',
+                '762b6e27-7f84-4afc-ab45-b8afb6672520.png',
+                '76b782e0-f23c-41ec-9f04-a2992ebcf066.png',
+                '76ecb296-de6e-48e0-859c-41ae59672e9d.png',
+                '779f66d6-ad3f-440a-bff8-082fa1744c49.png',
+                '77c9bf56-ddb3-4aff-8ede-6ba5c23062ec.png',
+                '77e11f83-ac63-4f0b-be2e-c15ec7700bbd.png',
+                '77e5fcd0-91db-4154-b2c8-b8f635a9754d.png',
+                '78431f11-9dc3-4b71-a923-128981dd1504.png',
+                '785d7256-5adc-400e-be9a-2c3192320ff4.png',
+                '78e4c12f-4d39-4e9b-9460-1c4b80d4cf54.png',
+                '78f8de82-0db9-47ac-8850-fb6f20ff3b9f.png',
+                '79478be3-ea6b-4557-b217-0b86e4e37b67.png',
+                '795acbbd-be59-4963-b509-21a9c9734d34.png',
+                '799bba71-b9ab-41d2-a6fe-7b140f7c63b5.png',
+                '79ddf0e9-a072-470c-a37f-3780e9fcc32a.png',
+                '7a44be65-714d-47e3-804b-c44562c00acc.png',
+                '7c543a36-3506-4091-b293-b524089ddb91.png',
+                '7c878a06-39d2-43dd-a2fd-a2da642fd853.png',
+                '7ceb455d-f1a2-42d7-a219-c8a52d84d9a4.png',
+                '7d1818e3-7a4d-4338-8d50-4a0f2c8252d1.png',
+                '7d322ad9-5024-4230-8a4c-52333ed261d4.png',
+                '7d6a47c1-998a-4bcc-88aa-deaf1798513a.png',
+                '7e432a83-530e-40b7-9c89-611b87a3fe62.png',
+                '7e4d7624-35b7-45fd-a4ba-2f7c709790e0.png',
+                '7e651466-b3a1-422a-a086-c0f2880c83ba.png',
+                '7f522563-5381-4e83-8bd6-83b793c546a4.png',
+                '7f555f31-5169-44a4-9551-4fa2c60af04f.png',
+                '821e128e-12e7-40f7-9afc-f29273c88f28.png',
+                '823800aa-3aa9-41b4-8c38-8ea8fbdd465d.png',
+                '825bb444-eaea-4ffe-b3b1-28ee3d42d484.png',
+                '836c2ce5-c6e2-4754-be3a-e7f6e5bec0a7.png',
+                '83847b2a-bcb4-4bbb-9084-b9b41e91b36c.png',
+                '83c5b3fe-8622-4676-9f90-b00c9c3c3cb0.png',
+                '83dcef0d-52c6-4b5f-80d5-ec41bb0833d5.png',
+                '83feb1c3-c320-4332-8855-9d18a829f29e.png',
+                '84b12c72-034d-40f5-a069-63d72e53d381.png',
+                '84bbc09f-5ddd-4a07-a2d9-e7f75e909496.png',
+                '854f28e8-2e24-4cf0-84be-36fd1edbcdc7.png',
+                '866e33a2-ac8d-4ef3-ba3e-e4b6b0aa5b74.png',
+                '86f3ca0b-ffda-476d-89dd-beaf8f6eb466.png',
+                '87e34b27-e61f-4a8a-8c37-a7ba7a211527.png',
+                '88fd264c-3e0c-4807-b20c-12f4795c3538.png',
+                '891dbc96-2120-4778-a290-e073ce3375cf.png',
+                '895b1bc5-8da9-4bb9-9be8-28b6ba3675d7.png',
+                '898359b8-e584-47e1-979e-284ff78aeae5.png',
+                '89931786-9a36-4a0b-9db1-5b5ce999d300.png',
+                '89bcec87-c6a0-4a05-acbd-9a4982286193.png',
+                '8a51ca59-2228-4093-9e69-f939553ff642.png',
+                '8ae6129f-e15b-4bc7-af4c-1717bc268c71.png',
+                '8ae9e090-7be5-491f-8abd-b1657e9fa54d.png',
+                '8b0a1cb9-02a5-4077-b073-bf19c42c9fc5.png',
+                '8b55219f-3251-4ed4-9195-9ed32b5e5f78.png',
+                '8b715789-b3b5-4d22-a1cd-6f3c1c15ef1e.png',
+                '8b71d0ef-d177-4cef-b928-319d8de098a0.png',
+                '8c57753a-7008-4274-9616-61565c83bf50.png',
+                '8cfa7c61-2b1a-41a6-9a2f-d1b9532b2a75.png',
+                '8d243dc7-eb2f-4a8c-b519-21e4dfac89a3.png',
+                '8d262c55-888a-4176-bcf7-2c2c3f891b29.png',
+                '8daa02f8-ed43-48aa-90aa-59240f359f23.png',
+                '8daff42a-3682-4d0c-a626-3e8ce72f5db4.png',
+                '8e1ae8e1-cea3-4a9f-a36b-844f5213a509.png',
+                '8e688496-60b3-4cb5-8878-2d5a4c263ba2.png',
+                '8e723079-92bd-4749-9ca8-cf8bb77aba39.png',
+                '8f0f267c-80f4-4821-b57a-01aea1a66332.png',
+                '8f20f2ba-2c4a-4eb4-9708-f578b17138f9.png',
+                '8fe461aa-9615-42e0-8a9d-fb814615d3e2.png',
+                '90348311-db37-408a-8e3d-44c9cfc0b8a6.png',
+                '9047bc9a-9cbe-4ca2-ac70-2ef2cb0c9b78.png',
+                '904860ae-241f-4aa7-a9f9-9fffac04832b.png',
+                '9098646e-5d0a-4e2f-86e1-9fce3da8ee0f.png',
+                '910f95ab-834e-4c9d-89fe-a3e4468344b7.png',
+                '91312fdb-bcb3-4da8-937e-3081d161ab09.png',
+                '91323b0e-9844-452e-87b6-4e61f74c9676.png',
+                '91604966-9dee-4dae-b44c-5fd4e1e7fd35.png',
+                '9170d074-8270-4f7f-bd2a-65d55efd9bcc.png',
+                '91f50e41-f606-4f77-9aaf-5165120625f3.png',
+                '92d95b49-eab8-49c8-b005-7c9d7452eb73.png',
+                '945c86bf-216d-466c-8fc7-408eeb75111b.png',
+                '9473bb1c-0275-431c-a4e7-6e30184c1a58.png',
+                '94923a96-4012-4264-a9b5-dd2e08a0fa85.png',
+                '9531f3da-c0c4-49ff-9379-1b05451ffa62.png',
+                '9537eb8b-81f4-49af-a53c-f1ac6fcf84d5.png',
+                '954c7c28-e798-4499-8696-42a023df1eb0.png',
+                '958beacc-e8e4-41aa-b4ed-17204fac8f06.png',
+                '95915460-62cd-4a25-83c4-f74aec13a4e4.png',
+                '96104b86-b960-4a36-ace5-af5fc0260eef.png',
+                '9616d68d-4616-4944-bbce-dc4a7db61a22.png',
+                '96e886b8-c6a6-4eaa-8e9f-e77cc095e206.png',
+                '96eb0594-a10e-48a8-9726-ce6b34971055.png',
+                '98a73551-3993-4dca-b079-4efc9086a845.png',
+                '98c2d660-44bb-433f-862f-4385e5127c43.png',
+                '9912dc89-3ed0-47ac-88e6-78bdd665c097.png',
+                '99478c01-d5ea-450f-b7a1-d6502c244778.png',
+                '9994b098-32cf-4e62-8308-4a9672de27ed.png',
+                '99d9e080-7788-4922-aa17-422b7353d748.png',
+                '9a2b74cc-92b3-4ed6-817b-861d669c1e81.png',
+                '9afdd6ed-1f47-44d1-ac60-a68cfeafea5c.png',
+                '9b072fa5-66df-4d76-a6be-760b0ee06377.png',
+                '9baa5f81-be68-4850-86ae-025925646990.png',
+                '9d500697-c72b-4f74-a863-ba38bcd36c23.png',
+                '9d6788d0-ca07-45d7-8d5b-989a19e40941.png',
+                '9d7db348-9b73-41d8-8455-e78727b73e09.png',
+                '9e07c953-4714-4316-8cca-e54a9a280ed3.png',
+                '9e6415e7-83f4-4345-81c8-c3c27094e169.png',
+                '9ed7b397-e3b0-4f16-9357-e30d7a8ba0d6.png',
+                '9f06c56b-3d6e-41bc-bc3e-4422788f3b55.png',
+                '9f87a14e-a021-4d7f-81e3-e3bed9bb4df0.png',
+                '9fda9641-b29a-4073-a88c-6ac97d9a630e.png',
+                'a02b4047-25ac-4bc6-818e-3405a4a2abd4.png',
+                'a090208c-546e-4235-8089-050cd1acfa80.png',
+                'a0f90433-bb7d-44af-9f68-d2d8f41d14e2.png',
+                'a0fddf31-5557-4a40-9500-0a22f5d8bacb.png',
+                'a105b66a-1024-49fb-b658-1833e4079c0a.png',
+                'a1765076-fa65-43d6-96f3-16f8f0c403a2.png',
+                'a1e6bd2d-b884-4098-b440-fa1c800b4109.png',
+                'a2b53228-a0b0-4b6a-a6a1-3fa05e4a17d0.png',
+                'a2dde191-58b6-43f8-9a80-d3344cde2369.png',
+                'a2fbd8f6-3e23-4851-ab14-9becaeff96de.png',
+                'a2fcc677-78e7-4ff5-b470-b2e2581e750c.png',
+                'a302a9dc-5ac6-4c29-9bd6-70eba419a85e.png',
+                'a32642ea-fb21-44f2-b2cb-096711a4da06.png',
+                'a3ef92d7-1be1-4856-9ae3-c255a1c2f630.png',
+                'a4778595-d565-4c82-8787-042b134b2256.png',
+                'a48b2a87-ca12-47df-aca0-e660b6ab6bcd.png',
+                'a4e921c1-039e-4cc7-badd-092b887d7709.png',
+                'a4f53f80-c1ef-485e-b98f-ce3c01651bf4.png',
+                'a509a357-fe6d-4a28-a9a9-d79a66a49782.png',
+                'a529124e-b6b0-484c-ba81-39596faa62c1.png',
+                'a5b6e590-f403-48f6-be3f-f309f5baad16.png',
+                'a5c03cea-557f-48b6-90ae-4ea5b27c96bd.png',
+                'a6a10efa-017b-48cc-a65c-29ac9e08b2d9.png',
+                'a75e2adf-f1e9-4525-9e66-ab372fb503d2.png',
+                'a7bfc7cd-050d-4256-8681-485c69ce5a44.png',
+                'a874fbaa-65b1-4b4b-8633-f0b958a1da09.png',
+                'a8e1c679-3bf1-44c5-96b3-3b89afff9594.png',
+                'a90514e9-0bbd-4624-bf31-11c26b95c5c0.png',
+                'a93be237-8a0c-499d-9659-0d5ffcaa5b14.png',
+                'a9ef08fc-c896-4a4a-8386-43df7f703606.png',
+                'aa49013d-e56e-46a8-b8fb-2a43d62c7d06.png',
+                'aaedaaec-1032-46c7-aa65-2d8401d788ad.png',
+                'abe786da-f5fd-4a3d-863d-52b91513305c.png',
+                'abea8200-0f09-4c5b-9dde-fc5416277b0a.png',
+                'ac3dd2c4-65b7-4547-a5f6-7a88d8fc2d49.png',
+                'ac66d40e-99d3-4ae9-97d9-bb17ca84a552.png',
+                'ac82d18f-7790-4d20-9512-10710e65e3b0.png',
+                'ac88d5e9-9781-4237-80a6-9f832c4941b4.png',
+                'adfe60ee-a74c-41e1-a5f5-2bc7c7486418.png',
+                'ae00822c-9a75-4f3d-be35-a56bfde08d53.png',
+                'ae3c88fa-1de4-4baa-82fa-47317973a987.png',
+                'aedb9529-b53a-4362-a918-95b6fc111791.png',
+                'af34df16-e284-4e41-b1c6-79d0ccee9de3.png',
+                'afe437f2-ed00-462e-8e72-f00f62233a59.png',
+                'b0161876-4796-426a-8ccf-f94c5f0c3503.png',
+                'b0bb7101-e5c6-44be-843e-cae87897f411.png',
+                'b157d499-1991-4ad4-8558-0f0cfef0d4c3.png',
+                'b20d6fea-69de-4c44-81c1-2beb7f7739ec.png',
+                'b258337b-4f43-411f-bf11-ab41e0a80980.png',
+                'b2d6b21a-2492-4804-a113-c6f6de3c818f.png',
+                'b3ee2218-c96c-4e6f-b3d9-c1d318f6dd0d.png',
+                'b41c49c7-2b8b-4ea5-9696-63c1741f008b.png',
+                'b449b2e6-748c-43b2-836f-297d2e407edf.png',
+                'b4550c16-6442-4fb2-8b2e-a5469afb7877.png',
+                'b4cd44b6-40dd-46f1-aa86-263ebf75dcd5.png',
+                'b541c8e5-26b6-4c12-8ede-6150806a299c.png',
+                'b565226b-9e01-4a8c-b52b-a033e4c4c02f.png',
+                'b5dd4c66-312d-4bdc-9570-19a95589899b.png',
+                'b7695d9a-cee2-4db5-a7c8-72d8b11b2516.png',
+                'b83c819e-5e2c-4384-b347-29df1cc5708b.png',
+                'b8b230fc-db3f-414a-bda9-0e3a3b1eb94f.png',
+                'b8db45a2-6316-4a30-af39-6c144fea8ca6.png',
+                'b8dd0742-7672-4233-aa0b-0df28e6c0c25.png',
+                'b993187f-01d2-4236-83a9-15946546f87e.png',
+                'b99b8f53-c398-4052-ae52-2715fa4480e7.png',
+                'b9f67771-da55-4902-a52b-ed33f2432c80.png',
+                'ba9fcca1-49d5-4dd8-b3f8-08fff76ced41.png',
+                'baf63309-b091-4497-9072-5f557a1cec41.png',
+                'bb95d68a-640e-4094-b9b0-37a6ae7fd18e.png',
+                'bba81fdd-7644-4ba9-9c71-6d6f9d9cbb47.png',
+                'bc00a65e-4ef6-480b-ac1f-35e37f8461da.png',
+                'bc772652-4505-4629-8b05-3fb894b7f375.png',
+                'bc9a9bcf-f719-41cc-9488-ed26a7447fd9.png',
+                'bcb9f98d-f624-4a2c-9426-d3e6b2462000.png',
+                'bd449a4f-b87a-4156-afb8-053e79266c5b.png',
+                'bf029391-d75b-4b98-a0aa-f30a6485bf57.png',
+                'bf045873-17b9-4208-a000-c76cc313959e.png',
+                'bf8f8508-d2dd-4958-b944-6ab092ff1928.png',
+                'bfc6fe6a-3b72-4fdb-80eb-8df7fffc06f1.png',
+                'c009d69c-1278-4c37-b906-6a80829f3262.png',
+                'c08a0982-0095-4b68-9c45-8a1ca9be789f.png',
+                'c0aa706b-2a47-44a1-979d-6b7e7e27b997.png',
+                'c0c6160d-2b85-4a64-bb38-a425cafee273.png',
+                'c13f454b-38dd-436a-9b8a-0ae22244a831.png',
+                'c287002c-3a72-4ffb-834a-06bc4268aa0b.png',
+                'c3446745-cc7b-4b2b-b144-000ca22fe554.png',
+                'c3ac3b10-285d-4f5d-a58c-0635e0a13e7f.png',
+                'c3bb9f9f-5478-4d87-a714-00d3cd83245c.png',
+                'c3e6f9b9-e90a-460a-a943-80c46b63f14b.png',
+                'c5f11ed1-69df-49c0-b3a1-b1caa2a82cff.png',
+                'c6d833b1-e992-4427-ac8d-f436499eae8d.png',
+                'c6e6ad21-27b0-4f99-ba2c-cf740e426573.png',
+                'c72ce69d-10f3-4e53-a30b-9e42f097e051.png',
+                'c72d5e6a-a066-4085-86cf-ad028c4e4589.png',
+                'c72fa987-37d0-46ff-ad71-f8c49793ef10.png',
+                'c749883a-ad92-48b7-8c0c-b9d2f62c1675.png',
+                'c78330c4-90fc-4f79-bcf7-34d4afb83857.png',
+                'c7b849ac-2cf8-44a3-be3c-c0f018e9cca3.png',
+                'c836e227-4200-47a1-b3dd-5371788ba40e.png',
+                'c84e83e7-e407-4d32-9fbe-749b73894500.png',
+                'c88f4170-a52e-471f-a042-1b1eefdc2156.png',
+                'c8dc9ff6-4c72-485a-8255-3c052b87de6a.png',
+                'c96f7c31-62e0-4970-bec7-b11cf4431ba1.png',
+                'ca267ede-7c42-4acb-8cdb-0cae8308b272.png',
+                'ca851ea2-4cce-489e-96dd-f9cd5e5fd472.png',
+                'caf08260-b560-4763-8fe6-bf22ef60b61e.png',
+                'cb919154-6a78-4329-964e-735d3d391af7.png',
+                'cbc34c83-474a-42e3-9329-9ab9403a17c0.png',
+                'cc01dc81-b8c8-4803-b37f-ff062ef1eb27.png',
+                'cc1f1fc6-ca03-42ba-8566-8236a288eb4e.png',
+                'ccbb6fac-0069-4897-b732-b9ff471e6cf0.png',
+                'cd4d9545-ecdf-48c9-9dc9-789f91e93993.png',
+                'cd8fe371-b708-41d4-8d6d-7fd7d928e285.png',
+                'cdc95f98-42e0-4921-989d-1c8a009070d9.png',
+                'cde8f998-84b9-415f-84df-d08eae6d806c.png',
+                'cdea36bd-9090-462b-b17b-f823fe10bbc6.png',
+                'cdefa1f1-b45f-4199-a1ba-3848752a8051.png',
+                'ce40f2ec-1d51-4fd0-98d1-a1b6c50be220.png',
+                'ce45d0c3-a07d-4a8c-af25-40a1f614b693.png',
+                'ceabed25-e5e7-45fc-bd43-4d2425609f22.png',
+                'cee2b627-41f3-4023-b1b6-30b3e29a2ea0.png',
+                'cef165eb-254e-4a3b-a84e-b3c1a4541707.png',
+                'cefe2b19-cbc3-4aad-8e6a-af1bd39195a7.png',
+                'cf127961-9aae-4f49-859d-e716181fe388.png',
+                'cf93c442-d487-4972-b917-2793019ae390.png',
+                'cff0f7b7-a898-485e-b91d-9e0255493af4.png',
+                'd034a486-9644-4f14-8422-1c6e188e1217.png',
+                'd14b7e24-a222-4459-93e7-1840a4f37505.png',
+                'd17c41a6-3659-4262-93f8-ad30d6ecb4fe.png',
+                'd1895bd8-b82d-4891-8f0d-027b118e4ee4.png',
+                'd226e780-20cc-459d-856e-9c95485c55b9.png',
+                'd266e280-8994-48cb-ac38-f09510ac5b10.png',
+                'd26e198d-0e96-4979-80b2-f67431d7a0df.png',
+                'd2f395e3-6b30-496f-a54a-588b1234e421.png',
+                'd36da826-ac8a-412a-82ff-7c23758e13c7.png',
+                'd3f88a38-e3b5-406a-989e-f00053fd05b6.png',
+                'd4726025-43ca-4dcc-b486-edc919447acd.png',
+                'd4e22523-1a54-4c5d-bb86-fba0a2c1e918.png',
+                'd52be598-dc31-4faf-9d7b-fb96951d88cf.png',
+                'd5d958ec-5fe8-47c0-8651-7ac5783901ab.png',
+                'd67508f6-1e3e-4e33-bb7c-84051bbf275b.png',
+                'd691c6e4-92a7-431c-9abf-cf25c5e9f9fb.png',
+                'd776d179-f770-421a-9f71-ac1745dfd9ca.png',
+                'd846e67f-8c67-4e4f-a4be-b46ddaef0427.png',
+                'd861f62c-558f-4652-9594-f0ca92b9f0bd.png',
+                'd9425a88-378a-4bd0-a33c-90f45445abd5.png',
+                'd99a1230-37bd-4e30-ba3a-1e6c889515e0.png',
+                'd9ae8e60-0919-4c21-a20b-39e6ccd2f006.png',
+                'd9ebf209-9954-4b45-ab83-cc85d860b6c1.png',
+                'dad41f65-724e-432b-8cb4-5bdc42f9f71b.png',
+                'dc1ec3ad-fa64-41f5-b1b0-d7807a45e3d2.png',
+                'dc290f1d-9203-48f9-b56b-315519d0f3c3.png',
+                'dc5ef9e5-ec9e-4458-b2d1-aa161a4c47d8.png',
+                'dcdaefee-5e7a-43c1-88b6-7d1d73147bb0.png',
+                'dd1ae2a4-b2da-4c29-9a25-50457841cf62.png',
+                'dd826bf5-134d-4574-a936-ea07599eea0a.png',
+                'dd8b2911-577e-4ec4-b244-d6d6a7b8830f.png',
+                'ddbd540d-9804-442e-b3b5-8f54bff1587a.png',
+                'de837c59-ccdb-4328-9c98-93065bcd01a3.png',
+                'e005543b-b6dd-4ac0-ae67-b4a1a1be3061.png',
+                'e0995e33-5613-4b5a-8c5e-4aae3b38010f.png',
+                'e0b4a77c-42fb-4f0b-820b-2b42562f402d.png',
+                'e0d0c5ed-4f7e-4ec3-ac96-f48e12a2b74c.png',
+                'e12ff6ab-2d11-4824-acda-6958343a281f.png',
+                'e1853a8a-92c9-4300-b64f-20b9c16e5fec.png',
+                'e1bf3d8b-6047-487c-9e73-922deaf2704c.png',
+                'e1f97810-1640-4ef7-a0ee-69fa45b5b3a6.png',
+                'e2095b71-b529-4f84-b70e-f069635a0b09.png',
+                'e216af90-501d-4892-98d9-6e8ea6f64876.png',
+                'e22a51c1-8420-47b8-af62-a8cf21a7ce29.png',
+                'e259899d-932c-4f14-9610-2159b624044f.png',
+                'e27dde53-2bcc-4905-946b-f72f2374de5d.png',
+                'e375a908-4e38-479f-83ae-c13084cfad17.png',
+                'e3c9488d-bbb8-4877-8024-196fd378c4e6.png',
+                'e4717cbd-dda1-4464-a117-947d9b93bbb4.png',
+                'e4851cbd-4edc-4b97-b889-8bcabe3211e8.png',
+                'e48c8fe8-4886-43c1-8f5d-a7eaf8cfecd3.png',
+                'e51b79b0-9b92-4bf0-ba4e-daf6713f7216.png',
+                'e57d2aca-79db-4fea-a2de-1d3cd3b8537a.png',
+                'e5ce5992-9ac8-45c8-baba-785ac4a96037.png',
+                'e6c27c3a-6de2-4375-b627-ce2ca0781da5.png',
+                'e7156a25-debf-4c20-952d-4e458beffad2.png',
+                'e82eeaad-5dd7-43f0-8008-a4b7c62b5437.png',
+                'e8564a05-2ea3-4e6f-b5f8-95e26cd5d79e.png',
+                'e878787d-0a15-4742-b3cb-f43a5fc905d9.png',
+                'e88d73c4-3a91-4a27-b29f-7a5ad41c1e70.png',
+                'e9422de4-1a0a-4fe0-b27f-81370dd5b78c.png',
+                'e99b1136-8685-458b-8cbf-115d0f2de7f3.png',
+                'e9a5f562-bf0c-41eb-b38d-3b46bd87b738.png',
+                'e9acee59-71cc-4905-abad-9de1602a8d83.png',
+                'ea02a386-e92a-48e5-9db5-a8c5f9fe2c8f.png',
+                'ea276970-f06d-40be-8685-d0116ce84efb.png',
+                'eaa5b622-75d3-4cce-8782-45ee1508e866.png',
+                'eb2356cc-2cd7-43b2-8932-87096f5e9125.png',
+                'ebe6cdf7-d88c-4a74-9cf6-a1ca7ab61d0e.png',
+                'ecac854a-ffa2-48d6-911f-dad7482e5a36.png',
+                'ecd9d80a-8fbf-48c0-94c4-dfa71efbd695.png',
+                'ecf1b6e8-9a48-439c-a45e-cdab5bd33fbb.png',
+                'ed3db77e-7b35-4a3f-aaf9-ea62a63cdd84.png',
+                'ed57b81c-d35d-4c8f-8d73-41990e0d9d4c.png',
+                'ee3b8214-29ff-44fe-bb66-5c61a79d2963.png',
+                'eead56d0-7e25-4363-956b-f49b34611185.png',
+                'ef375152-a562-43de-9c01-851f86096032.png',
+                'ef7f9c74-9c1e-4181-8280-5d3dfd86ebf3.png',
+                'ef953591-68f9-4564-8df2-cba9a9207895.png',
+                'f068f5be-09b3-4e49-ad30-0146a7066599.png',
+                'f09ad90e-e458-4ee8-adce-171fae96edd1.png',
+                'f0b93321-e9a8-4d9c-bb3b-151adcab9e95.png',
+                'f23cdb0e-5230-4edd-a81c-dbb25d61ce02.png',
+                'f329f7c1-dfee-47c5-8df3-0f485f4a9d11.png',
+                'f35441f2-c344-42ae-82eb-653745302a00.png',
+                'f3c5ffae-475e-4572-8949-0efc5b11fcb7.png',
+                'f42e5c4f-39f4-4446-ba4d-3dc17f257607.png',
+                'f47ea9ae-ac4d-46d2-b661-fef17108482d.png',
+                'f4b3a30d-d9b2-445c-8bc0-54e78896a799.png',
+                'f4b6b56d-b297-4d28-ab9b-07865b827ebf.png',
+                'f575f161-be30-46ae-a333-db44153430c7.png',
+                'f5960cee-1ab3-4790-a842-79f5de340b29.png',
+                'f6816f3d-c592-43fe-89f6-c4586726f259.png',
+                'f6fbe851-18a0-4175-afb3-9e825c7435ab.png',
+                'f75dc2f6-b4c7-495a-ba88-5ac215dfdc11.png',
+                'f77e3009-054e-4e6d-993e-021bd2721bb3.png',
+                'f785965f-ecb2-4030-bdbe-51cd3a0c37af.png',
+                'f7861a68-1810-4226-b6a6-1b7e6cc00aee.png',
+                'f807f725-1f8a-4385-bdb2-ef2aa67f6ae1.png',
+                'f84be78f-2e4e-4f2f-81d7-a4130a4fdbf5.png',
+                'f90cb932-0527-440f-a38e-584d057c5fe0.png',
+                'f9bf6be4-cd45-4c6f-887a-71b451460d0e.png',
+                'f9e4213d-5932-44d8-8af9-601768d75b75.png',
+                'fabc4e7e-72e6-4671-9b13-282033a08d53.png',
+                'fb038d04-d277-4c57-ba66-f4985dadda9c.png',
+                'fb335c50-9f5f-4ab2-91d1-39f6dd0e46d3.png',
+                'fb41ad51-3c10-4e94-86ec-46af31dc88e9.png',
+                'fb72b2ed-9814-4cfb-9d35-3af6fa2278fa.png',
+                'fbcdffb6-8abb-428e-ac9a-7e4536a660f4.png',
+                'fbf2ceda-ed4e-424a-ad21-4b4fab8a69ef.png',
+                'fc21561a-10df-40f3-99d6-95342783cf81.png',
+                'fc5e0d30-f2fe-471e-bb25-badb693eedfc.png',
+                'fd1e8fa6-c7a8-427f-b08a-7c5773affe05.png',
+                'fd2b8a5d-cef6-4b98-b37e-d0f4ac7a363f.png',
+                'fd950c4f-9343-4dcb-99d6-99b380d914bc.png',
+                'fe1d7aaf-946b-4ed1-9d0e-e500740b474b.png',
+                'fe6cdeb9-963c-47a4-8ed4-be886e87a207.png',
+                'ff422deb-fc7f-43b9-ad3b-8f7b007abcaa.png',
+                'ffbd91bf-5826-4504-8045-26ebfa732abc.png',
+            ];
+
+            // Load image URLs from GitHub repository
+            filenames.forEach(filename => {
+                images.push(`https://raw.githubusercontent.com/hujinya2020/freelance/main/image_600/${filename}`);
+            });
+
+            // Shuffle images randomly
+            seed = sessionId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+            for (let i = images.length - 1; i > 0; i--) {
+                const j = Math.floor(seedRandom() * (i + 1));
+                [images[i], images[j]] = [images[j], images[i]];
+            }
+
+            generateAttentionChecks();
+            createRatingScales();
+            showItem();
+            updateProgress();
+        }
+
+        function createRatingScales() {
+            const container = document.getElementById('ratingScales');
+            container.innerHTML = '';
+
+            const currentItem = images[currentImageIndex];
+
+            if (currentItem.isAttentionCheck) {
+                const div = document.createElement('div');
+                div.className = 'rating-scale';
+                div.innerHTML = `
+                    <span class="scale-label">Please select ${currentItem.value} for this question</span>
+                    <div class="rating-options">
+                        ${[1, 2, 3, 4, 5, 6, 7].map(value => `
+                            <div class="rating-option">
+                                <span class="rating-number">${value}</span>
+                                <label>
+                                    <input type="radio" name="attention_check" value="${value}">
+                                    <span class="radio-circle"></span>
+                                </label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(div);
+            } else {
+                scales.forEach(scale => {
+                    const div = document.createElement('div');
+                    div.className = 'rating-scale';
+                    div.innerHTML = `
+                        <span class="scale-label left">Low ${scale.label}</span>
+                        <div class="rating-options">
+                            ${[1, 2, 3, 4, 5, 6, 7].map(value => `
+                                <div class="rating-option">
+                                    <span class="rating-number">${value}</span>
+                                    <label>
+                                        <input type="radio" name="${scale.name}" value="${value}">
+                                        <span class="radio-circle"></span>
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <span class="scale-label right">High ${scale.label}</span>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        }
+
+        function seedRandom() {
+            seed = (seed * 9301 + 49297) % 233280;
+            return seed / 233280;
+        }
+
+        function showItem() {
+            const imageElement = document.getElementById('currentImage');
+            const currentItem = images[currentImageIndex];
+
+            if (currentItem.isAttentionCheck) {
+                imageElement.style.display = 'none';
+            } else {
+                imageElement.style.display = 'block';
+                imageElement.src = currentItem;
+            }
+
+            document.getElementById('prevButton').disabled = currentImageIndex === 0;
+            document.getElementById('nextButton').disabled = false;
+            document.getElementById('nextButton').textContent = currentImageIndex === images.length - 1 ? 'Finish' : 'Next';
+
+            createRatingScales();
+            loadExistingRatings();
+            updateProgress();
+        }
+
+        function loadExistingRatings() {
+            const imageRef = database.ref(`rating-aes/${sessionId}/Items/item-${currentImageIndex + 1}`);
+            imageRef.once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    if (data.attention_check !== undefined) {
+                        const radio = document.querySelector(`input[name="attention_check"][value="${data.response}"]`);
+                        if (radio) {
+                            radio.checked = true;
+                        }
+                    } else if (data.rating) {
+                        scales.forEach(scale => {
+                            const radio = document.querySelector(`input[name="${scale.name}"][value="${data.rating[scale.name]}"]`);
+                            if (radio) {
+                                radio.checked = true;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        function updateProgress() {
+            const progressElement = document.getElementById('imageProgress');
+            progressElement.textContent = `Progress: ${currentImageIndex + 1} / ${images.length}`;
+        }
+
+        function showNextItem() {
+            if (saveRatings()) {
+                if (currentImageIndex < images.length - 1) {
+                    currentImageIndex++;
+                    showItem();
+                } else {
+                    endTime = new Date();
+                    saveTimingData();
+                    showEndPage();
+                }
+            }
+        }
+
+        function showPreviousItem() {
+            if (saveRatings()) {
+                if (currentImageIndex > 0) {
+                    currentImageIndex--;
+                    showItem();
+                }
+            }
+        }
+
+        function saveRatings() {
+            const currentItem = images[currentImageIndex];
+            let allRated = true;
+
+            const sessionRef = database.ref(`image-labeling/${sessionId}`);
+            sessionRef.update({
+                ProlificId: prolificId,
+                UniqueIndex: sessionId
+            });
+
+            const itemRef = sessionRef.child(`Items/item-${currentImageIndex + 1}`);
+
+            if (currentItem.isAttentionCheck) {
+                const selectedRadio = document.querySelector('input[name="attention_check"]:checked');
+
+                if (selectedRadio) {
+                    const response = parseInt(selectedRadio.value);
+                    const passed = response === currentItem.value;
+
+                    itemRef.update({
+                        attention_check: true,
+                        question: `Please select ${currentItem.value} for this question`,
+                        response: response,
+                        passed: passed
+                    });
+                } else {
+                    allRated = false;
+                }
+            } else {
+                const ratings = {};
+                scales.forEach(scale => {
+                    const selectedRadio = document.querySelector(`input[name="${scale.name}"]:checked`);
+                    if (selectedRadio) {
+                        ratings[scale.name] = selectedRadio.value;
+                    } else {
+                        allRated = false;
+                    }
+                });
+
+                if (allRated) {
+                    itemRef.update({
+                        'image-path': currentItem,
+                        rating: ratings
+                    });
+                }
+            }
+
+            if (!allRated) {
+                alert('Please rate all dimensions before proceeding.');
+                return false;
+            }
+
+            return true;
+        }
+
+        function saveTimingData() {
+            const duration = (endTime - startTime) / 1000; // Duration in seconds
+            const sessionRef = database.ref(`image-labeling/${sessionId}`);
+            sessionRef.update({
+                StartTime: startTime.toISOString(),
+                EndTime: endTime.toISOString(),
+                Duration: duration
+            });
+        }
+
+        function showEndPage() {
+            document.getElementById('mainTask').style.display = 'none';
+            document.getElementById('endPage').style.display = 'block';
+
+            const durationInMinutes = ((endTime - startTime) / 60000).toFixed(2);
+            const timingInfo = document.createElement('p');
+            timingInfo.textContent = `You completed the task in ${durationInMinutes} minutes.`;
+            document.getElementById('endPage').insertBefore(timingInfo, document.getElementById('endPage').lastElementChild);
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
             const startButton = document.getElementById('startButton');
@@ -332,7 +1213,7 @@
             const instructionsModal = document.getElementById('instructionsModal');
             const closeBtn = document.querySelector('.close');
 
-            let countdown = 0; // LATER
+            let countdown = 20; // LATER
             const timer = setInterval(() => {
                 countdown--;
                 startButton.textContent = `Start Task (${countdown}s)`;
@@ -374,773 +1255,6 @@
                 }
             });
         });
-
-        function generateSessionId() {
-            const timestamp = Date.now().toString(36);
-            const randomStr = Math.random().toString(36).substring(2, 7);
-            return `${timestamp}-${randomStr}`;
-        }
-
-        function loadImages() {
-            const filenames = [
-    '00f93176-ff27-4b12-98e6-68021d987636.png',
-    '00ffe4cf-b279-4a85-9779-966c1a2b2dcc.png',
-    '011e6666-0ca8-41fd-b056-73e076a929ca.png',
-    '0139def5-d3d2-4a61-8b69-5d38cf543373.png',
-    '01a234d6-60a2-4ab1-a148-05dc060ac63a.png',
-    '01ae42f6-ae55-4f9e-816c-cf60a29c2655.png',
-    '033241c2-d8d5-4562-8d04-cc0b90ce0a17.png',
-    '03b80918-f4ca-4104-bef6-7647f8c654d4.png',
-    '04207398-98d4-4c40-b378-851d63d30dac.png',
-    '04cc40a8-e1c2-425b-a485-7ee2eaaa223d.png',
-    '04d628fa-2e29-472b-86f2-f762d3bacba3.png',
-    '0586d5bc-2be2-40d9-ab81-96932282ed6f.png',
-    '061dd489-f4eb-47cb-8aac-dd713a1d7f5a.png',
-    '067088f4-622b-4180-a23f-d28272500a78.png',
-    '06826553-3a51-4e79-bda9-58faa18194f5.png',
-    '07ace063-3d7a-44d6-bb47-b6c698a109aa.png',
-    '081bf528-f0b7-4bd3-b0b3-54c44f702138.png',
-    '08867c9c-c386-4ed7-a59d-2d12117ada1a.png',
-    '0970e317-9ddf-4a37-bd2e-a5d07cafe43a.png',
-    '09addfda-9b9a-4e89-b5d6-31d3a81c1855.png',
-    '09e4c107-23f9-41b1-a467-d68281950d51.png',
-    '0a598ddd-3701-4e5e-a36a-674ab9100a06.png',
-    '0b202fdc-2d2a-478e-a66e-5b74e748fcbb.png',
-    '0b911d79-7770-4787-ab2c-68e87e60c2b3.png',
-    '0be676b3-1296-49dc-a6f7-5e5e8c8c1d83.png',
-    '0c58ff71-95c8-441e-9e64-8ae8e1f78b3e.png',
-    '0d1edcd1-0e2e-4c16-abca-ab3ca909915d.png',
-    '0d389ae7-7943-4634-89d1-dd87f0de3b7e.png',
-    '0d45a7b8-a5ed-4f01-aa9c-1d398aea6c36.png',
-    '0d5266b7-f271-406e-8059-5dccbd0dc38c.png',
-    '0d99c2dc-2727-4b6c-9986-2347a82b63d5.png',
-    '0dbbf743-a2c1-404c-8d01-832a73b81cda.png',
-    '0e0213fa-3a8b-4a74-b34f-a7701a6dc457.png',
-    '0e2da843-a624-4314-a476-c15d63d722ec.png',
-    '0e563881-1282-4466-a094-2d8032977c0f.png',
-    '0eaa5c16-8ddc-4cec-b00a-67008d70346c.png',
-    '0f24c87a-a709-4f5b-9a8a-93afec58bb6a.png',
-    '0fe28334-34c4-472a-9b03-cb0719344c24.png',
-    '10736c34-7e76-4430-936c-5279f1b70f97.png',
-    '127453b1-0aa6-4ba1-9006-106d9e5acda6.png',
-    '12cf1011-5625-414a-b0a3-82f9267d309c.png',
-    '12d7fcf6-9934-4bdb-b14b-f9f9652c8f8e.png',
-    '142941e4-a302-498c-af56-a72430cd453d.png',
-    '14e2e2a2-b12b-40f9-9d91-4ddc2858bb1e.png',
-    '15796a47-7b6d-437f-a2df-7742b5b1b8ea.png',
-    '16be7f10-cf82-4c0d-84d3-fdb1a6c1b92d.png',
-    '17133e6c-f58d-44b1-938d-2da16b305765.png',
-    '171a6be7-5543-4f91-86de-ce51059c50fa.png',
-    '172bc529-79b8-4d1a-9f04-e82553975a8c.png',
-    '17f4f549-c647-4561-bb38-ff8434912994.png',
-    '182f08ef-a57e-4c1c-8da1-c139e83cf488.png',
-    '1869d956-707f-4680-950e-a291d35d8c01.png',
-    '19af5e36-f5c9-4e80-8db4-b45c2001bf88.png',
-    '19e66238-cd29-44f3-b04f-eb660d5f7c16.png',
-    '1a358820-e113-4fab-ba5c-fec2c6526438.png',
-    '1a40f81f-aaef-429c-8883-c7132d488c85.png',
-    '1a4c7cf5-ed63-4794-ba0d-ca30a486a6eb.png',
-    '1a7bd36f-87b6-4f2a-8e77-10b75e784a33.png',
-    '1a898eba-e19c-428f-b3d4-3e376f243167.png',
-    '1af08316-edc1-4e36-96e3-83858ed31f87.png',
-    '1b31f967-f53c-4cbd-8b66-11b29d49f427.png',
-    '1b586be7-620d-4cba-8b21-0fa24c5eb73b.png',
-    '1b721699-ba9d-4a04-a6e4-9386d6077385.png',
-    '1be3ce82-3e66-4b4a-9f09-37f3872ded19.png',
-    '1c3ca0f6-9bfb-46fb-b6e5-08a3d31fe529.png',
-    '1c9965f0-7224-4e83-baeb-76aa3b36acb2.png',
-    '1c9d6a2f-f0cc-4a27-939b-4a6d073c0af7.png',
-    '1cdb3f38-8e88-4457-a872-bc46a7829bf2.png',
-    '1d10cf2c-f276-48a3-ad01-411fe13171c5.png',
-    '1d52f500-1923-46bf-878e-f43b5e687864.png',
-    '1d812b70-25ea-4fee-8e01-745a8d16ba9f.png',
-    '1d97f83b-29e5-4d18-ad94-dde08364cb6b.png',
-    '1da0251f-a851-4125-bd5d-b318e524e593.png',
-    '1dcf2efb-f4e5-460d-a2c3-c7c69490a243.png',
-    '1edb53d6-0e98-4056-9973-6a63d7dac567.png',
-    '1fc33ce0-3b3f-4687-b24e-ae549491ed80.png',
-    '211e47fc-ca50-4404-a179-0908f4d1164b.png',
-    '22796910-0f57-4cef-aa9b-2dfed6a2b927.png',
-    '232e357e-55cb-4452-ae44-67567571cb7e.png',
-    '237d3902-ec29-44e3-9103-edd43534b939.png',
-    '238c49de-ff54-435d-a99b-a7fbe5a6d35e.png',
-    '239907f9-c9ea-4c66-9762-c0456a843ab8.png',
-    '246f35ea-f927-4e28-b790-dd746ab5e7ef.png',
-    '249a132e-e045-47a8-aefa-f1a4ffdeca49.png',
-    '24a29513-0d3c-4f66-8190-3d33aeab976f.png',
-    '24cc5e8e-7c78-4b34-91e5-4f99fc7e1c25.png',
-    '24ef0142-a727-4e36-9bce-3b0c8f03feac.png',
-    '261c3033-8bbf-4a64-9e0e-cee4f5b5ec83.png',
-    '26bc4338-42fb-4989-bb58-78e186d1e54c.png',
-    '281842a5-d87f-49cb-8a37-2b8c4602435f.png',
-    '28192620-839e-4422-8a15-ea3d9f24b21e.png',
-    '28460896-bad2-4e9f-9f45-bc731336595e.png',
-    '2895bc29-c30f-4700-a572-34b8752d6160.png',
-    '28e9c421-3b60-42a0-8fa8-c86eb7d8c44d.png',
-    '2942868d-37ca-4553-943b-b9da04519c60.png',
-    '298425ee-5f4b-4fa7-8f9c-5354fbc4430c.png',
-    '29f9c437-f639-4be0-9ca3-6b37b3447d57.png',
-    '2b23d05f-fcc7-49f0-a0ce-5d6986682ef6.png',
-    '2cb4f6d3-cfd7-4f39-bbb4-f838eaad1e7e.png',
-    '2d7d315c-3057-498d-a59a-4561c156e847.png',
-    '2dcfeec7-55bf-4dcf-b240-c40b4af0a88f.png',
-    '2e224ddd-d3b0-4242-b5c1-7da8d47c49c2.png',
-    '2e78263f-a8f2-4a57-9220-4ee2dd59c18a.png',
-    '2fdc6365-0ae1-4347-83e9-b166a80c4fd9.png',
-    '3011467b-ccc0-45c3-9569-13e6df540eb9.png',
-    '30c3fea9-680b-45b4-bd97-16f57d90d755.png',
-    '30db1950-f71f-4830-951d-0c2a1a6272e2.png',
-    '3181d39b-2ded-4834-b5fd-e060b64dac5e.png',
-    '33924549-8ec3-4e47-b1a5-6382495a49b4.png',
-    '3461e362-ab73-4b5e-9e9f-5fe305755c71.png',
-    '34dd09ff-a352-4dee-b886-a08f1f6ce99f.png',
-    '360eb467-7987-4c07-87ee-94eab5f89f47.png',
-    '36801c2e-4b97-4963-9129-2c53e82bb86e.png',
-    '36a9c754-b8da-41b6-a868-65843b355c04.png',
-    '36b7a7ed-87d6-458f-8827-a4673f622ac2.png',
-    '3920df03-17ce-49fd-a09a-b344f86e2c20.png',
-    '39dc8fdb-63c3-46e6-b72a-9d5d732c059a.png',
-    '3b0e5d79-2058-443b-a06c-a2aec08365e4.png',
-    '3dcfa00c-c940-4118-9ade-b305ca225397.png',
-    '3e1c2aec-6088-432a-9e2e-56f366e85d92.png',
-    '3eabd18b-2b7f-4cd5-be72-fc5a83aff567.png',
-    '3f1ff6a6-bcbf-4e8a-b9dc-4a9d2e898fa3.png',
-    '3fd5a4f8-0bb1-4dbc-9d89-a5dc44d4677f.png',
-    '3fd74a60-c5df-4d24-89c8-f0be0772f76c.png',
-    '407d92d1-e06a-4f5b-b200-1d85e62957c9.png',
-    '407ecab4-267c-4cad-9706-898373e363b5.png',
-    '40f525e5-a5b4-4f2f-9d99-6e0f1d8376e6.png',
-    '41a8fb0f-84e0-403c-92c1-d238bad56766.png',
-    '41b11920-189e-47d3-9a8d-16e2ccbd44bc.png',
-    '4220c0bc-e26a-4c10-90d2-24f6a81bf2a5.png',
-    '429a1187-c5c2-4b58-b01f-d0f2c4935ce6.png',
-    '43070f6c-acf9-41b6-9a75-edfc671cd8bb.png',
-    '434213f2-e3fc-43f2-b15f-3506f11ed67b.png',
-    '4371a5d6-6c8c-4b48-b980-49b903ae0d9a.png',
-    '43738131-532e-4165-9b3f-46b5091b9e08.png',
-    '44ffa1ba-d043-48cb-9875-01eef2fb31be.png',
-    '450fabee-5def-481a-aebe-1cfa87e52fbf.png',
-    '451a9840-36d3-4d36-b152-f2c5c1a05bc0.png',
-    '453e201c-becb-416d-9a09-d1d77b696e13.png',
-    '455f6423-bee5-4753-924c-e75c3998a228.png',
-    '460252f5-071f-48b3-bd42-4f76428419df.png',
-    '4685d55a-4899-4931-a933-0634ef08b3f0.png',
-    '47b69839-2f23-4d2e-8b98-1b8e96586a37.png',
-    '487105d7-4aed-42fc-b4df-62ca7594087c.png',
-    '488d209d-9a66-4838-9d7d-00155fe49e33.png',
-    '48af500f-4d09-47ac-9797-061bb0029de1.png',
-    '4906c12b-99ad-4e1b-a70a-baa8bb49cf32.png',
-    '4930f1a9-4c7c-4e74-937d-7f9d9b4e35b0.png',
-    '496c11ac-bf5f-42f0-90fb-853f84203114.png',
-    '497efd30-0df8-4bd7-8328-7f343bce85c0.png',
-    '4981be82-2f27-4ba0-9f0c-ce332427e719.png',
-    '49c7d172-3122-410c-a5bb-35f42b1362b7.png',
-    '49eeb07a-d8cc-4e4c-9842-18299052000a.png',
-    '4a75ecae-ee59-4da7-897a-4b1fa95e7aa6.png',
-    '4aa430b4-7291-4f20-a466-9cb84c1660e6.png',
-    '4af6a638-b154-48c6-8fea-d29559eda2cf.png',
-    '4b352804-8d61-4562-b06c-e22ebd3cad00.png',
-    '4b78dde5-a270-48fa-9674-a7b870690693.png',
-    '4bb9f934-fcb8-495c-9721-8bd87a323177.png',
-    '4bfcd8c7-c45f-4d28-850b-24fb0d900c6d.png',
-    '4c0d3c8c-15e5-4429-9c3d-ab2b8ff7eafc.png',
-    '4c2f4bd6-6caa-4561-8e93-fd94b1e88d67.png',
-    '4c47f49c-30ed-437a-9178-e78f009b104a.png',
-    '4d04bf01-d2cd-4aa6-88ec-bdc7a7d9db21.png',
-    '4d2bbb51-547b-4ec2-98ac-2fb25ae58086.png',
-    '4d3b7a0a-b5fe-464a-8da2-2ee99c095663.png',
-    '4d668e7b-b3d5-45e1-9ea5-f5484dc6252d.png',
-    '4dbb57a5-a94a-4c0f-9e37-4dcfe80967d9.png',
-    '4dc366dc-5050-44e4-b839-9f388e0e9b34.png',
-    '4eb86be4-f9f9-4786-a9cc-7f93010f32f3.png',
-    '4f6a1930-4ac8-429e-af3c-f77868af0173.png',
-    '4f987771-7246-4a78-8fd6-f1428360dcdb.png',
-    '5023a042-91a8-4c3a-8a19-8a46a18e618f.png',
-    '506d6e36-91b8-4cd7-851a-734d3972a8d3.png',
-    '51127ffa-a5d3-46e2-8033-b3f5b047140e.png',
-    '51532172-f26c-4fdf-ad8f-64867f320b3d.png',
-    '51a15589-1bc0-440e-b800-f5dd5ccdc501.png',
-    '52660334-03d5-4ac2-af35-d8537c218ea2.png',
-    '531e6e79-60dd-4d10-b9e1-7646afba586c.png',
-    '532ce7d0-a00a-4407-b626-fe9ea1f6a34b.png',
-    '544327b6-3e3d-41a6-8325-b35a00ca85ce.png',
-    '54b49255-b6cc-48c0-8bbd-19c31781b61d.png',
-    '55eea983-c454-4841-89b9-64b9f6f2399e.png',
-    '56a71039-e9f7-46b4-9ad0-25cafdc3a93a.png',
-    '56ffd637-f5ec-4c90-ae9a-419d227b63ef.png',
-    '5730769e-47b3-4099-94fa-2bd6a9519c85.png',
-    '57974175-2bd7-44cc-a337-a0ed7198c719.png',
-    '58771788-7feb-4fae-bac8-3ef837ab179c.png',
-    '587b6221-bc19-4521-bc26-60edc0248b8d.png',
-    '5889ede0-179f-405c-8130-8f79a376f4d1.png',
-    '595f1250-ce41-499a-97b8-93831129762c.png',
-    '59aeb0e6-3a3c-4aea-a802-832ba7b3d510.png',
-    '5a5db720-4d68-4d27-8ba2-9dda8ee58d12.png',
-    '5a7a69fb-e980-4ab6-ada3-c2d18b5591af.png',
-    '5ad2354c-371f-4133-87a0-69db75bb894c.png',
-    '5b4095f6-b34c-4627-bcca-c3300b053233.png',
-    '5bb6e345-601f-4233-a4b8-cd68879c63ba.png',
-    '5c0d2499-5d39-4128-83ba-185d10d5957f.png',
-    '5c4d0291-0f82-49dc-a08e-3f3f7e9571d1.png',
-    '5c96f6b2-47d2-4458-9d9c-0dfd77e7c28e.png',
-    '5d5c199c-0b78-4a60-a594-e2a87a6eb196.png',
-    '5d677e24-3ea5-49fb-bece-3791fd3a9d0f.png',
-    '5e6da5d9-10bc-4909-bec4-cb4e58727051.png',
-    '5eb43f2b-675e-4f96-ab3d-7d758cfa636b.png',
-    '619ae4c6-22b3-4c49-a117-46b4de01944d.png',
-    '629f4af4-a0be-4d31-bc70-600da8af780c.png',
-    '63251d7c-9500-4bba-a3ac-fbfd9bc38193.png',
-    '6354e67f-b724-4ec1-b035-f6557ba3cb98.png',
-    '63cd7041-77ae-417e-9656-5fcf412cf89e.png',
-    '64904756-3c9e-4606-ba5e-d46cba81ae93.png',
-    '64c0a9b0-df65-4032-b320-2c8fc79da24f.png',
-    '65619393-d14e-40cf-bb21-21a3eb955242.png',
-    '6625cb1e-093c-4188-a644-ba75188221fb.png',
-    '66c57575-8950-4f10-aa9f-2bc26df135b4.png',
-    '67421e09-3b23-479b-ab28-362a951f8450.png',
-    '67cb5d2c-542c-4dc2-a32a-2b6e986a0ed1.png',
-    '685035f6-3615-4be0-97c3-e8216b808cb7.png',
-    '6863cdd6-bdc7-421f-9167-e510ff7729da.png',
-    '68f2069d-8860-459b-82a8-0d67e5f97725.png',
-    '693a3f19-c3da-40ad-8780-3ec5fee93122.png',
-    '6aaf336e-7e0c-4e93-9ec9-158548a4cc05.png',
-    '6b2d4943-62da-47de-a6f6-77a521b7a2da.png',
-    '6bb27bc3-23f7-48ee-ba06-d8227cdd21e7.png',
-    '6bfd94b4-19b7-48f3-985e-fff3a0b81d3b.png',
-    '6c33bf70-c8b0-49e8-8985-f4b042ce30cc.png',
-    '6ea97faf-e68f-4e1a-996d-0d5471ddb806.png',
-    '6ef67868-a578-4b22-9026-65a5fa8742e4.png',
-    '7005c72a-c9fa-443c-b38b-0d68c3cf3d2f.png',
-    '700aaf57-feb8-4ed1-97cd-2ff1860a581c.png',
-    '7065f0c5-6164-4cf0-b6c4-7ba25c384847.png',
-    '70758ec5-0990-4d4d-8444-10e301ab774d.png',
-    '70f92077-dec4-490c-a396-80b4f9e4089b.png',
-    '72042769-b561-47b3-a24a-37f0095e77d3.png',
-    '72ac2c9e-ae44-482b-8b26-6c9d8b75fd8e.png',
-    '737924bb-61fa-4f2e-b901-711c2d6c55d9.png',
-    '7391b2b9-93a1-4f2c-899b-59d0399c7520.png',
-    '73a3b4d9-4621-4302-9548-cbc0f5f47edc.png',
-    '73a6a250-42fe-40d1-9c5d-828694ad3f0c.png',
-    '73b8757b-c216-4cc0-a6a5-a0491291a0f1.png',
-    '7491fa1d-7013-44aa-8b8c-d0dd3fb4f5a4.png',
-    '7499b291-781d-442e-b0e0-b4360d945084.png',
-    '74b50b81-9af0-45d9-9cf4-d97108937e45.png',
-    '75577117-91f7-4723-adb6-438a581c462b.png',
-    '757fdb47-5d60-4012-8007-ee250fcd3359.png',
-    '759c772e-f4e8-4bee-ae7a-afa941d975c0.png',
-    '75a5c2e3-810d-4449-8e0e-44770e46a352.png',
-    '75ed2846-c820-4b28-98e4-71f18dbce872.png',
-    '762b6e27-7f84-4afc-ab45-b8afb6672520.png',
-    '76b782e0-f23c-41ec-9f04-a2992ebcf066.png',
-    '76ecb296-de6e-48e0-859c-41ae59672e9d.png',
-    '779f66d6-ad3f-440a-bff8-082fa1744c49.png',
-    '77c9bf56-ddb3-4aff-8ede-6ba5c23062ec.png',
-    '77e11f83-ac63-4f0b-be2e-c15ec7700bbd.png',
-    '77e5fcd0-91db-4154-b2c8-b8f635a9754d.png',
-    '78431f11-9dc3-4b71-a923-128981dd1504.png',
-    '785d7256-5adc-400e-be9a-2c3192320ff4.png',
-    '78e4c12f-4d39-4e9b-9460-1c4b80d4cf54.png',
-    '78f8de82-0db9-47ac-8850-fb6f20ff3b9f.png',
-    '79478be3-ea6b-4557-b217-0b86e4e37b67.png',
-    '795acbbd-be59-4963-b509-21a9c9734d34.png',
-    '799bba71-b9ab-41d2-a6fe-7b140f7c63b5.png',
-    '79ddf0e9-a072-470c-a37f-3780e9fcc32a.png',
-    '7a44be65-714d-47e3-804b-c44562c00acc.png',
-    '7c543a36-3506-4091-b293-b524089ddb91.png',
-    '7c878a06-39d2-43dd-a2fd-a2da642fd853.png',
-    '7ceb455d-f1a2-42d7-a219-c8a52d84d9a4.png',
-    '7d1818e3-7a4d-4338-8d50-4a0f2c8252d1.png',
-    '7d322ad9-5024-4230-8a4c-52333ed261d4.png',
-    '7d6a47c1-998a-4bcc-88aa-deaf1798513a.png',
-    '7e432a83-530e-40b7-9c89-611b87a3fe62.png',
-    '7e4d7624-35b7-45fd-a4ba-2f7c709790e0.png',
-    '7e651466-b3a1-422a-a086-c0f2880c83ba.png',
-    '7f522563-5381-4e83-8bd6-83b793c546a4.png',
-    '7f555f31-5169-44a4-9551-4fa2c60af04f.png',
-    '821e128e-12e7-40f7-9afc-f29273c88f28.png',
-    '823800aa-3aa9-41b4-8c38-8ea8fbdd465d.png',
-    '825bb444-eaea-4ffe-b3b1-28ee3d42d484.png',
-    '836c2ce5-c6e2-4754-be3a-e7f6e5bec0a7.png',
-    '83847b2a-bcb4-4bbb-9084-b9b41e91b36c.png',
-    '83c5b3fe-8622-4676-9f90-b00c9c3c3cb0.png',
-    '83dcef0d-52c6-4b5f-80d5-ec41bb0833d5.png',
-    '83feb1c3-c320-4332-8855-9d18a829f29e.png',
-    '84b12c72-034d-40f5-a069-63d72e53d381.png',
-    '84bbc09f-5ddd-4a07-a2d9-e7f75e909496.png',
-    '854f28e8-2e24-4cf0-84be-36fd1edbcdc7.png',
-    '866e33a2-ac8d-4ef3-ba3e-e4b6b0aa5b74.png',
-    '86f3ca0b-ffda-476d-89dd-beaf8f6eb466.png',
-    '87e34b27-e61f-4a8a-8c37-a7ba7a211527.png',
-    '88fd264c-3e0c-4807-b20c-12f4795c3538.png',
-    '891dbc96-2120-4778-a290-e073ce3375cf.png',
-    '895b1bc5-8da9-4bb9-9be8-28b6ba3675d7.png',
-    '898359b8-e584-47e1-979e-284ff78aeae5.png',
-    '89931786-9a36-4a0b-9db1-5b5ce999d300.png',
-    '89bcec87-c6a0-4a05-acbd-9a4982286193.png',
-    '8a51ca59-2228-4093-9e69-f939553ff642.png',
-    '8ae6129f-e15b-4bc7-af4c-1717bc268c71.png',
-    '8ae9e090-7be5-491f-8abd-b1657e9fa54d.png',
-    '8b0a1cb9-02a5-4077-b073-bf19c42c9fc5.png',
-    '8b55219f-3251-4ed4-9195-9ed32b5e5f78.png',
-    '8b715789-b3b5-4d22-a1cd-6f3c1c15ef1e.png',
-    '8b71d0ef-d177-4cef-b928-319d8de098a0.png',
-    '8c57753a-7008-4274-9616-61565c83bf50.png',
-    '8cfa7c61-2b1a-41a6-9a2f-d1b9532b2a75.png',
-    '8d243dc7-eb2f-4a8c-b519-21e4dfac89a3.png',
-    '8d262c55-888a-4176-bcf7-2c2c3f891b29.png',
-    '8daa02f8-ed43-48aa-90aa-59240f359f23.png',
-    '8daff42a-3682-4d0c-a626-3e8ce72f5db4.png',
-    '8e1ae8e1-cea3-4a9f-a36b-844f5213a509.png',
-    '8e688496-60b3-4cb5-8878-2d5a4c263ba2.png',
-    '8e723079-92bd-4749-9ca8-cf8bb77aba39.png',
-    '8f0f267c-80f4-4821-b57a-01aea1a66332.png',
-    '8f20f2ba-2c4a-4eb4-9708-f578b17138f9.png',
-    '8fe461aa-9615-42e0-8a9d-fb814615d3e2.png',
-    '90348311-db37-408a-8e3d-44c9cfc0b8a6.png',
-    '9047bc9a-9cbe-4ca2-ac70-2ef2cb0c9b78.png',
-    '904860ae-241f-4aa7-a9f9-9fffac04832b.png',
-    '9098646e-5d0a-4e2f-86e1-9fce3da8ee0f.png',
-    '910f95ab-834e-4c9d-89fe-a3e4468344b7.png',
-    '91312fdb-bcb3-4da8-937e-3081d161ab09.png',
-    '91323b0e-9844-452e-87b6-4e61f74c9676.png',
-    '91604966-9dee-4dae-b44c-5fd4e1e7fd35.png',
-    '9170d074-8270-4f7f-bd2a-65d55efd9bcc.png',
-    '91f50e41-f606-4f77-9aaf-5165120625f3.png',
-    '92d95b49-eab8-49c8-b005-7c9d7452eb73.png',
-    '945c86bf-216d-466c-8fc7-408eeb75111b.png',
-    '9473bb1c-0275-431c-a4e7-6e30184c1a58.png',
-    '94923a96-4012-4264-a9b5-dd2e08a0fa85.png',
-    '9531f3da-c0c4-49ff-9379-1b05451ffa62.png',
-    '9537eb8b-81f4-49af-a53c-f1ac6fcf84d5.png',
-    '954c7c28-e798-4499-8696-42a023df1eb0.png',
-    '958beacc-e8e4-41aa-b4ed-17204fac8f06.png',
-    '95915460-62cd-4a25-83c4-f74aec13a4e4.png',
-    '96104b86-b960-4a36-ace5-af5fc0260eef.png',
-    '9616d68d-4616-4944-bbce-dc4a7db61a22.png',
-    '96e886b8-c6a6-4eaa-8e9f-e77cc095e206.png',
-    '96eb0594-a10e-48a8-9726-ce6b34971055.png',
-    '98a73551-3993-4dca-b079-4efc9086a845.png',
-    '98c2d660-44bb-433f-862f-4385e5127c43.png',
-    '9912dc89-3ed0-47ac-88e6-78bdd665c097.png',
-    '99478c01-d5ea-450f-b7a1-d6502c244778.png',
-    '9994b098-32cf-4e62-8308-4a9672de27ed.png',
-    '99d9e080-7788-4922-aa17-422b7353d748.png',
-    '9a2b74cc-92b3-4ed6-817b-861d669c1e81.png',
-    '9afdd6ed-1f47-44d1-ac60-a68cfeafea5c.png',
-    '9b072fa5-66df-4d76-a6be-760b0ee06377.png',
-    '9baa5f81-be68-4850-86ae-025925646990.png',
-    '9d500697-c72b-4f74-a863-ba38bcd36c23.png',
-    '9d6788d0-ca07-45d7-8d5b-989a19e40941.png',
-    '9d7db348-9b73-41d8-8455-e78727b73e09.png',
-    '9e07c953-4714-4316-8cca-e54a9a280ed3.png',
-    '9e6415e7-83f4-4345-81c8-c3c27094e169.png',
-    '9ed7b397-e3b0-4f16-9357-e30d7a8ba0d6.png',
-    '9f06c56b-3d6e-41bc-bc3e-4422788f3b55.png',
-    '9f87a14e-a021-4d7f-81e3-e3bed9bb4df0.png',
-    '9fda9641-b29a-4073-a88c-6ac97d9a630e.png',
-    'a02b4047-25ac-4bc6-818e-3405a4a2abd4.png',
-    'a090208c-546e-4235-8089-050cd1acfa80.png',
-    'a0f90433-bb7d-44af-9f68-d2d8f41d14e2.png',
-    'a0fddf31-5557-4a40-9500-0a22f5d8bacb.png',
-    'a105b66a-1024-49fb-b658-1833e4079c0a.png',
-    'a1765076-fa65-43d6-96f3-16f8f0c403a2.png',
-    'a1e6bd2d-b884-4098-b440-fa1c800b4109.png',
-    'a2b53228-a0b0-4b6a-a6a1-3fa05e4a17d0.png',
-    'a2dde191-58b6-43f8-9a80-d3344cde2369.png',
-    'a2fbd8f6-3e23-4851-ab14-9becaeff96de.png',
-    'a2fcc677-78e7-4ff5-b470-b2e2581e750c.png',
-    'a302a9dc-5ac6-4c29-9bd6-70eba419a85e.png',
-    'a32642ea-fb21-44f2-b2cb-096711a4da06.png',
-    'a3ef92d7-1be1-4856-9ae3-c255a1c2f630.png',
-    'a4778595-d565-4c82-8787-042b134b2256.png',
-    'a48b2a87-ca12-47df-aca0-e660b6ab6bcd.png',
-    'a4e921c1-039e-4cc7-badd-092b887d7709.png',
-    'a4f53f80-c1ef-485e-b98f-ce3c01651bf4.png',
-    'a509a357-fe6d-4a28-a9a9-d79a66a49782.png',
-    'a529124e-b6b0-484c-ba81-39596faa62c1.png',
-    'a5b6e590-f403-48f6-be3f-f309f5baad16.png',
-    'a5c03cea-557f-48b6-90ae-4ea5b27c96bd.png',
-    'a6a10efa-017b-48cc-a65c-29ac9e08b2d9.png',
-    'a75e2adf-f1e9-4525-9e66-ab372fb503d2.png',
-    'a7bfc7cd-050d-4256-8681-485c69ce5a44.png',
-    'a874fbaa-65b1-4b4b-8633-f0b958a1da09.png',
-    'a8e1c679-3bf1-44c5-96b3-3b89afff9594.png',
-    'a90514e9-0bbd-4624-bf31-11c26b95c5c0.png',
-    'a93be237-8a0c-499d-9659-0d5ffcaa5b14.png',
-    'a9ef08fc-c896-4a4a-8386-43df7f703606.png',
-    'aa49013d-e56e-46a8-b8fb-2a43d62c7d06.png',
-    'aaedaaec-1032-46c7-aa65-2d8401d788ad.png',
-    'abe786da-f5fd-4a3d-863d-52b91513305c.png',
-    'abea8200-0f09-4c5b-9dde-fc5416277b0a.png',
-    'ac3dd2c4-65b7-4547-a5f6-7a88d8fc2d49.png',
-    'ac66d40e-99d3-4ae9-97d9-bb17ca84a552.png',
-    'ac82d18f-7790-4d20-9512-10710e65e3b0.png',
-    'ac88d5e9-9781-4237-80a6-9f832c4941b4.png',
-    'adfe60ee-a74c-41e1-a5f5-2bc7c7486418.png',
-    'ae00822c-9a75-4f3d-be35-a56bfde08d53.png',
-    'ae3c88fa-1de4-4baa-82fa-47317973a987.png',
-    'aedb9529-b53a-4362-a918-95b6fc111791.png',
-    'af34df16-e284-4e41-b1c6-79d0ccee9de3.png',
-    'afe437f2-ed00-462e-8e72-f00f62233a59.png',
-    'b0161876-4796-426a-8ccf-f94c5f0c3503.png',
-    'b0bb7101-e5c6-44be-843e-cae87897f411.png',
-    'b157d499-1991-4ad4-8558-0f0cfef0d4c3.png',
-    'b20d6fea-69de-4c44-81c1-2beb7f7739ec.png',
-    'b258337b-4f43-411f-bf11-ab41e0a80980.png',
-    'b2d6b21a-2492-4804-a113-c6f6de3c818f.png',
-    'b3ee2218-c96c-4e6f-b3d9-c1d318f6dd0d.png',
-    'b41c49c7-2b8b-4ea5-9696-63c1741f008b.png',
-    'b449b2e6-748c-43b2-836f-297d2e407edf.png',
-    'b4550c16-6442-4fb2-8b2e-a5469afb7877.png',
-    'b4cd44b6-40dd-46f1-aa86-263ebf75dcd5.png',
-    'b541c8e5-26b6-4c12-8ede-6150806a299c.png',
-    'b565226b-9e01-4a8c-b52b-a033e4c4c02f.png',
-    'b5dd4c66-312d-4bdc-9570-19a95589899b.png',
-    'b7695d9a-cee2-4db5-a7c8-72d8b11b2516.png',
-    'b83c819e-5e2c-4384-b347-29df1cc5708b.png',
-    'b8b230fc-db3f-414a-bda9-0e3a3b1eb94f.png',
-    'b8db45a2-6316-4a30-af39-6c144fea8ca6.png',
-    'b8dd0742-7672-4233-aa0b-0df28e6c0c25.png',
-    'b993187f-01d2-4236-83a9-15946546f87e.png',
-    'b99b8f53-c398-4052-ae52-2715fa4480e7.png',
-    'b9f67771-da55-4902-a52b-ed33f2432c80.png',
-    'ba9fcca1-49d5-4dd8-b3f8-08fff76ced41.png',
-    'baf63309-b091-4497-9072-5f557a1cec41.png',
-    'bb95d68a-640e-4094-b9b0-37a6ae7fd18e.png',
-    'bba81fdd-7644-4ba9-9c71-6d6f9d9cbb47.png',
-    'bc00a65e-4ef6-480b-ac1f-35e37f8461da.png',
-    'bc772652-4505-4629-8b05-3fb894b7f375.png',
-    'bc9a9bcf-f719-41cc-9488-ed26a7447fd9.png',
-    'bcb9f98d-f624-4a2c-9426-d3e6b2462000.png',
-    'bd449a4f-b87a-4156-afb8-053e79266c5b.png',
-    'bf029391-d75b-4b98-a0aa-f30a6485bf57.png',
-    'bf045873-17b9-4208-a000-c76cc313959e.png',
-    'bf8f8508-d2dd-4958-b944-6ab092ff1928.png',
-    'bfc6fe6a-3b72-4fdb-80eb-8df7fffc06f1.png',
-    'c009d69c-1278-4c37-b906-6a80829f3262.png',
-    'c08a0982-0095-4b68-9c45-8a1ca9be789f.png',
-    'c0aa706b-2a47-44a1-979d-6b7e7e27b997.png',
-    'c0c6160d-2b85-4a64-bb38-a425cafee273.png',
-    'c13f454b-38dd-436a-9b8a-0ae22244a831.png',
-    'c287002c-3a72-4ffb-834a-06bc4268aa0b.png',
-    'c3446745-cc7b-4b2b-b144-000ca22fe554.png',
-    'c3ac3b10-285d-4f5d-a58c-0635e0a13e7f.png',
-    'c3bb9f9f-5478-4d87-a714-00d3cd83245c.png',
-    'c3e6f9b9-e90a-460a-a943-80c46b63f14b.png',
-    'c5f11ed1-69df-49c0-b3a1-b1caa2a82cff.png',
-    'c6d833b1-e992-4427-ac8d-f436499eae8d.png',
-    'c6e6ad21-27b0-4f99-ba2c-cf740e426573.png',
-    'c72ce69d-10f3-4e53-a30b-9e42f097e051.png',
-    'c72d5e6a-a066-4085-86cf-ad028c4e4589.png',
-    'c72fa987-37d0-46ff-ad71-f8c49793ef10.png',
-    'c749883a-ad92-48b7-8c0c-b9d2f62c1675.png',
-    'c78330c4-90fc-4f79-bcf7-34d4afb83857.png',
-    'c7b849ac-2cf8-44a3-be3c-c0f018e9cca3.png',
-    'c836e227-4200-47a1-b3dd-5371788ba40e.png',
-    'c84e83e7-e407-4d32-9fbe-749b73894500.png',
-    'c88f4170-a52e-471f-a042-1b1eefdc2156.png',
-    'c8dc9ff6-4c72-485a-8255-3c052b87de6a.png',
-    'c96f7c31-62e0-4970-bec7-b11cf4431ba1.png',
-    'ca267ede-7c42-4acb-8cdb-0cae8308b272.png',
-    'ca851ea2-4cce-489e-96dd-f9cd5e5fd472.png',
-    'caf08260-b560-4763-8fe6-bf22ef60b61e.png',
-    'cb919154-6a78-4329-964e-735d3d391af7.png',
-    'cbc34c83-474a-42e3-9329-9ab9403a17c0.png',
-    'cc01dc81-b8c8-4803-b37f-ff062ef1eb27.png',
-    'cc1f1fc6-ca03-42ba-8566-8236a288eb4e.png',
-    'ccbb6fac-0069-4897-b732-b9ff471e6cf0.png',
-    'cd4d9545-ecdf-48c9-9dc9-789f91e93993.png',
-    'cd8fe371-b708-41d4-8d6d-7fd7d928e285.png',
-    'cdc95f98-42e0-4921-989d-1c8a009070d9.png',
-    'cde8f998-84b9-415f-84df-d08eae6d806c.png',
-    'cdea36bd-9090-462b-b17b-f823fe10bbc6.png',
-    'cdefa1f1-b45f-4199-a1ba-3848752a8051.png',
-    'ce40f2ec-1d51-4fd0-98d1-a1b6c50be220.png',
-    'ce45d0c3-a07d-4a8c-af25-40a1f614b693.png',
-    'ceabed25-e5e7-45fc-bd43-4d2425609f22.png',
-    'cee2b627-41f3-4023-b1b6-30b3e29a2ea0.png',
-    'cef165eb-254e-4a3b-a84e-b3c1a4541707.png',
-    'cefe2b19-cbc3-4aad-8e6a-af1bd39195a7.png',
-    'cf127961-9aae-4f49-859d-e716181fe388.png',
-    'cf93c442-d487-4972-b917-2793019ae390.png',
-    'cff0f7b7-a898-485e-b91d-9e0255493af4.png',
-    'd034a486-9644-4f14-8422-1c6e188e1217.png',
-    'd14b7e24-a222-4459-93e7-1840a4f37505.png',
-    'd17c41a6-3659-4262-93f8-ad30d6ecb4fe.png',
-    'd1895bd8-b82d-4891-8f0d-027b118e4ee4.png',
-    'd226e780-20cc-459d-856e-9c95485c55b9.png',
-    'd266e280-8994-48cb-ac38-f09510ac5b10.png',
-    'd26e198d-0e96-4979-80b2-f67431d7a0df.png',
-    'd2f395e3-6b30-496f-a54a-588b1234e421.png',
-    'd36da826-ac8a-412a-82ff-7c23758e13c7.png',
-    'd3f88a38-e3b5-406a-989e-f00053fd05b6.png',
-    'd4726025-43ca-4dcc-b486-edc919447acd.png',
-    'd4e22523-1a54-4c5d-bb86-fba0a2c1e918.png',
-    'd52be598-dc31-4faf-9d7b-fb96951d88cf.png',
-    'd5d958ec-5fe8-47c0-8651-7ac5783901ab.png',
-    'd67508f6-1e3e-4e33-bb7c-84051bbf275b.png',
-    'd691c6e4-92a7-431c-9abf-cf25c5e9f9fb.png',
-    'd776d179-f770-421a-9f71-ac1745dfd9ca.png',
-    'd846e67f-8c67-4e4f-a4be-b46ddaef0427.png',
-    'd861f62c-558f-4652-9594-f0ca92b9f0bd.png',
-    'd9425a88-378a-4bd0-a33c-90f45445abd5.png',
-    'd99a1230-37bd-4e30-ba3a-1e6c889515e0.png',
-    'd9ae8e60-0919-4c21-a20b-39e6ccd2f006.png',
-    'd9ebf209-9954-4b45-ab83-cc85d860b6c1.png',
-    'dad41f65-724e-432b-8cb4-5bdc42f9f71b.png',
-    'dc1ec3ad-fa64-41f5-b1b0-d7807a45e3d2.png',
-    'dc290f1d-9203-48f9-b56b-315519d0f3c3.png',
-    'dc5ef9e5-ec9e-4458-b2d1-aa161a4c47d8.png',
-    'dcdaefee-5e7a-43c1-88b6-7d1d73147bb0.png',
-    'dd1ae2a4-b2da-4c29-9a25-50457841cf62.png',
-    'dd826bf5-134d-4574-a936-ea07599eea0a.png',
-    'dd8b2911-577e-4ec4-b244-d6d6a7b8830f.png',
-    'ddbd540d-9804-442e-b3b5-8f54bff1587a.png',
-    'de837c59-ccdb-4328-9c98-93065bcd01a3.png',
-    'e005543b-b6dd-4ac0-ae67-b4a1a1be3061.png',
-    'e0995e33-5613-4b5a-8c5e-4aae3b38010f.png',
-    'e0b4a77c-42fb-4f0b-820b-2b42562f402d.png',
-    'e0d0c5ed-4f7e-4ec3-ac96-f48e12a2b74c.png',
-    'e12ff6ab-2d11-4824-acda-6958343a281f.png',
-    'e1853a8a-92c9-4300-b64f-20b9c16e5fec.png',
-    'e1bf3d8b-6047-487c-9e73-922deaf2704c.png',
-    'e1f97810-1640-4ef7-a0ee-69fa45b5b3a6.png',
-    'e2095b71-b529-4f84-b70e-f069635a0b09.png',
-    'e216af90-501d-4892-98d9-6e8ea6f64876.png',
-    'e22a51c1-8420-47b8-af62-a8cf21a7ce29.png',
-    'e259899d-932c-4f14-9610-2159b624044f.png',
-    'e27dde53-2bcc-4905-946b-f72f2374de5d.png',
-    'e375a908-4e38-479f-83ae-c13084cfad17.png',
-    'e3c9488d-bbb8-4877-8024-196fd378c4e6.png',
-    'e4717cbd-dda1-4464-a117-947d9b93bbb4.png',
-    'e4851cbd-4edc-4b97-b889-8bcabe3211e8.png',
-    'e48c8fe8-4886-43c1-8f5d-a7eaf8cfecd3.png',
-    'e51b79b0-9b92-4bf0-ba4e-daf6713f7216.png',
-    'e57d2aca-79db-4fea-a2de-1d3cd3b8537a.png',
-    'e5ce5992-9ac8-45c8-baba-785ac4a96037.png',
-    'e6c27c3a-6de2-4375-b627-ce2ca0781da5.png',
-    'e7156a25-debf-4c20-952d-4e458beffad2.png',
-    'e82eeaad-5dd7-43f0-8008-a4b7c62b5437.png',
-    'e8564a05-2ea3-4e6f-b5f8-95e26cd5d79e.png',
-    'e878787d-0a15-4742-b3cb-f43a5fc905d9.png',
-    'e88d73c4-3a91-4a27-b29f-7a5ad41c1e70.png',
-    'e9422de4-1a0a-4fe0-b27f-81370dd5b78c.png',
-    'e99b1136-8685-458b-8cbf-115d0f2de7f3.png',
-    'e9a5f562-bf0c-41eb-b38d-3b46bd87b738.png',
-    'e9acee59-71cc-4905-abad-9de1602a8d83.png',
-    'ea02a386-e92a-48e5-9db5-a8c5f9fe2c8f.png',
-    'ea276970-f06d-40be-8685-d0116ce84efb.png',
-    'eaa5b622-75d3-4cce-8782-45ee1508e866.png',
-    'eb2356cc-2cd7-43b2-8932-87096f5e9125.png',
-    'ebe6cdf7-d88c-4a74-9cf6-a1ca7ab61d0e.png',
-    'ecac854a-ffa2-48d6-911f-dad7482e5a36.png',
-    'ecd9d80a-8fbf-48c0-94c4-dfa71efbd695.png',
-    'ecf1b6e8-9a48-439c-a45e-cdab5bd33fbb.png',
-    'ed3db77e-7b35-4a3f-aaf9-ea62a63cdd84.png',
-    'ed57b81c-d35d-4c8f-8d73-41990e0d9d4c.png',
-    'ee3b8214-29ff-44fe-bb66-5c61a79d2963.png',
-    'eead56d0-7e25-4363-956b-f49b34611185.png',
-    'ef375152-a562-43de-9c01-851f86096032.png',
-    'ef7f9c74-9c1e-4181-8280-5d3dfd86ebf3.png',
-    'ef953591-68f9-4564-8df2-cba9a9207895.png',
-    'f068f5be-09b3-4e49-ad30-0146a7066599.png',
-    'f09ad90e-e458-4ee8-adce-171fae96edd1.png',
-    'f0b93321-e9a8-4d9c-bb3b-151adcab9e95.png',
-    'f23cdb0e-5230-4edd-a81c-dbb25d61ce02.png',
-    'f329f7c1-dfee-47c5-8df3-0f485f4a9d11.png',
-    'f35441f2-c344-42ae-82eb-653745302a00.png',
-    'f3c5ffae-475e-4572-8949-0efc5b11fcb7.png',
-    'f42e5c4f-39f4-4446-ba4d-3dc17f257607.png',
-    'f47ea9ae-ac4d-46d2-b661-fef17108482d.png',
-    'f4b3a30d-d9b2-445c-8bc0-54e78896a799.png',
-    'f4b6b56d-b297-4d28-ab9b-07865b827ebf.png',
-    'f575f161-be30-46ae-a333-db44153430c7.png',
-    'f5960cee-1ab3-4790-a842-79f5de340b29.png',
-    'f6816f3d-c592-43fe-89f6-c4586726f259.png',
-    'f6fbe851-18a0-4175-afb3-9e825c7435ab.png',
-    'f75dc2f6-b4c7-495a-ba88-5ac215dfdc11.png',
-    'f77e3009-054e-4e6d-993e-021bd2721bb3.png',
-    'f785965f-ecb2-4030-bdbe-51cd3a0c37af.png',
-    'f7861a68-1810-4226-b6a6-1b7e6cc00aee.png',
-    'f807f725-1f8a-4385-bdb2-ef2aa67f6ae1.png',
-    'f84be78f-2e4e-4f2f-81d7-a4130a4fdbf5.png',
-    'f90cb932-0527-440f-a38e-584d057c5fe0.png',
-    'f9bf6be4-cd45-4c6f-887a-71b451460d0e.png',
-    'f9e4213d-5932-44d8-8af9-601768d75b75.png',
-    'fabc4e7e-72e6-4671-9b13-282033a08d53.png',
-    'fb038d04-d277-4c57-ba66-f4985dadda9c.png',
-    'fb335c50-9f5f-4ab2-91d1-39f6dd0e46d3.png',
-    'fb41ad51-3c10-4e94-86ec-46af31dc88e9.png',
-    'fb72b2ed-9814-4cfb-9d35-3af6fa2278fa.png',
-    'fbcdffb6-8abb-428e-ac9a-7e4536a660f4.png',
-    'fbf2ceda-ed4e-424a-ad21-4b4fab8a69ef.png',
-    'fc21561a-10df-40f3-99d6-95342783cf81.png',
-    'fc5e0d30-f2fe-471e-bb25-badb693eedfc.png',
-    'fd1e8fa6-c7a8-427f-b08a-7c5773affe05.png',
-    'fd2b8a5d-cef6-4b98-b37e-d0f4ac7a363f.png',
-    'fd950c4f-9343-4dcb-99d6-99b380d914bc.png',
-    'fe1d7aaf-946b-4ed1-9d0e-e500740b474b.png',
-    'fe6cdeb9-963c-47a4-8ed4-be886e87a207.png',
-    'ff422deb-fc7f-43b9-ad3b-8f7b007abcaa.png',
-    'ffbd91bf-5826-4504-8045-26ebfa732abc.png',
-];
-
-            // Load image URLs from GitHub repository
-            filenames.forEach(filename => {
-                images.push(`https://raw.githubusercontent.com/hujinya2020/freelance/main/image_600/${filename}`);
-            });
-
-            // Shuffle images randomly
-            seed = sessionId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-
-            for (let i = images.length - 1; i > 0; i--) {
-                const j = Math.floor(seedRandom() * (i + 1));
-                [images[i], images[j]] = [images[j], images[i]];
-            }
-
-            createRatingScales();
-            showImage();
-            updateProgress();
-        }
-
-        function createRatingScales() {
-            const container = document.getElementById('ratingScales');
-            container.innerHTML = '';
-            scales.forEach(scale => {
-                const div = document.createElement('div');
-                div.className = 'rating-scale';
-                div.innerHTML = `
-                <span class="scale-label left">Low ${scale.label}</span>
-                <div class="rating-options">
-                    ${[1, 2, 3, 4, 5, 6, 7].map(value => `
-                        <label>
-                            <input type="radio" name="${scale.name}" value="${value}">
-                            <span class="radio-circle"></span>
-                        </label>
-                    `).join('')}
-                </div>
-                <span class="scale-label right">High ${scale.label}</span>
-            `;
-                container.appendChild(div);
-            });
-        }
-
-        function seedRandom() {
-            seed = (seed * 9301 + 49297) % 233280;
-            return seed / 233280;
-        }
-
-        function showImage() {
-            const imageElement = document.getElementById('currentImage');
-            imageElement.src = images[currentImageIndex];
-            document.getElementById('prevButton').disabled = currentImageIndex === 0;
-            document.getElementById('nextButton').disabled = false;
-            document.getElementById('nextButton').textContent = currentImageIndex === images.length - 1 ? 'Finish' : 'Next';
-
-            scales.forEach(scale => {
-                const radioButtons = document.querySelectorAll(`input[name="${scale.name}"]`);
-                radioButtons.forEach(radio => radio.checked = false);
-            });
-
-            loadExistingRatings();
-            updateProgress();
-        }
-
-        function loadExistingRatings() {
-            const imageRef = database.ref(`rating-aes/${sessionId}/Images/image-${currentImageIndex + 1}/rating`);
-            imageRef.once('value').then((snapshot) => {
-                const ratings = snapshot.val();
-                if (ratings) {
-                    scales.forEach(scale => {
-                        const radio = document.querySelector(`input[name="${scale.name}"][value="${ratings[scale.name]}"]`);
-                        if (radio) {
-                            radio.checked = true;
-                        }
-                    });
-                }
-            });
-        }
-
-        function updateProgress() {
-            const progressElement = document.getElementById('imageProgress');
-            progressElement.textContent = `Progress: ${currentImageIndex + 1} / ${images.length}`;
-        }
-
-        function showNextImage() {
-            if (saveRatings()) {
-                if (currentImageIndex < images.length - 1) {
-                    currentImageIndex++;
-                    showImage();
-                } else {
-                    endTime = new Date();
-                    saveTimingData();
-                    showEndPage();
-                }
-            }
-        }
-
-        function showPreviousImage() {
-            if (saveRatings()) {
-                if (currentImageIndex > 0) {
-                    currentImageIndex--;
-                    showImage();
-                }
-            }
-        }
-
-        function saveRatings() {
-            const imagePath = images[currentImageIndex];
-            const ratings = {};
-            let allRated = true;
-
-            scales.forEach(scale => {
-                const selectedRadio = document.querySelector(`input[name="${scale.name}"]:checked`);
-                if (selectedRadio) {
-                    ratings[scale.name] = selectedRadio.value;
-                } else {
-                    allRated = false;
-                }
-            });
-
-            if (!allRated) {
-                alert('Please rate all dimensions before proceeding.');
-                return false;
-            }
-
-            const sessionRef = database.ref(`image-labeling/${sessionId}`);
-            sessionRef.update({
-                ProlificId: prolificId,
-                UniqueIndex: sessionId
-            });
-
-            const imageRef = sessionRef.child(`Images/image-${currentImageIndex + 1}`);
-            imageRef.update({
-                'image-path': imagePath,
-                rating: ratings
-            });
-
-            return true;
-        }
-
-        function saveTimingData() {
-            const duration = (endTime - startTime) / 1000; // Duration in seconds
-            const sessionRef = database.ref(`image-labeling/${sessionId}`);
-            sessionRef.update({
-                StartTime: startTime.toISOString(),
-                EndTime: endTime.toISOString(),
-                Duration: duration
-            });
-        }
-
-        function showEndPage() {
-            document.getElementById('mainTask').style.display = 'none';
-            document.getElementById('endPage').style.display = 'block';
-
-            const durationInMinutes = ((endTime - startTime) / 60000).toFixed(2);
-            const timingInfo = document.createElement('p');
-            timingInfo.textContent = `You completed the task in ${durationInMinutes} minutes.`;
-            document.getElementById('endPage').insertBefore(timingInfo, document.getElementById('endPage').lastElementChild);
-        }
     </script>
 
 </body>
