@@ -270,7 +270,7 @@
                 <li><span style="font-weight: bold; color: #e74c3c;">Aim for more polarized ratings</span>: assign a 1
                     to images that are below average and a 7 to those that are exceptionally good.</li>
                 <li>Focus exclusively on the <span style="font-weight: bold; color: #e74c3c;">intrinsic qualities</span>
-                    of each image, ignoring factors such as resolution or content topics.</li>
+                    of each image, ignoring factors such as resolution.</li>
                 <li>Maintain consistency throughout your evaluations.</li>
             </ul>
         </div>
@@ -311,7 +311,7 @@
                     <li><span style="font-weight: bold; color: #e74c3c;">Aim for more polarized ratings</span>: assign a
                         1 to images that are below average and a 7 to those that are exceptionally good.</li>
                     <li>Focus exclusively on the <span style="font-weight: bold; color: #e74c3c;">intrinsic
-                            qualities</span> of each image, ignoring factors such as resolution or content topics.</li>
+                            qualities</span> of each image, ignoring factors such as resolution.</li>
                     <li>Maintain consistency throughout your evaluations.</li>
                 </ul>
             </div>
@@ -1082,7 +1082,7 @@
         }
 
         function loadExistingRatings() {
-            const imageRef = database.ref(`rating-aes/${sessionId}/Items/item-${currentImageIndex + 1}`);
+            const imageRef = database.ref(`${sessionId}/Items/item-${currentImageIndex + 1}`);
             imageRef.once('value').then((snapshot) => {
                 const data = snapshot.val();
                 if (data) {
