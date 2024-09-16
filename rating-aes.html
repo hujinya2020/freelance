@@ -65,6 +65,7 @@
             justify-content: center;
             align-items: center;
             height: 400px;
+            /* Set a fixed height */
         }
 
         .image-container img {
@@ -81,49 +82,40 @@
         }
 
         .rating-scale {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-}
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            padding: 8px;
+            border-radius: 8px;
+        }
 
-.scale-labels {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  margin-bottom: 5px;
-}
+        .scale-label {
+            width: 20%;
+            font-size: 0.8em;
+            color: #555;
+        }
 
-.scale-label {
-  font-size: 0.9em;
-  color: #555;
-}
+        .scale-label.left {
+            text-align: right;
+            padding-right: 10px;
+        }
 
-.rating-options {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-}
+        .scale-label.right {
+            text-align: left;
+            padding-left: 10px;
+        }
 
-.rating-option {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.rating-number {
-  font-size: 12px;
-  margin-bottom: 5px;
-}
-
-/* Existing styles for radio buttons and circles */
+        .rating-options {
+            display: flex;
+            justify-content: space-between;
+            width: 60%;
+        }
 
         .rating-options label {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: inline-block;
+            position: relative;
             cursor: pointer;
         }
 
@@ -237,6 +229,30 @@
                 max-height: 95vh;
             }
         }
+
+        .rating-options {
+            display: flex;
+            justify-content: space-between;
+            width: 60%;
+        }
+
+        .rating-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .rating-number {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .rating-options label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -249,8 +265,8 @@
             <ul>
                 <li>Rate each image on a scale from 1 to 7 for its <span
                         style="font-weight: bold; color: #e74c3c;">aesthetics</span>. Aesthetics refer to the visual
-                    appeal and beauty of an image. This includes elements such as composition, color harmony, and
-                    balance.</li>
+                    appeal and beauty of an image. This includes elements such as composition, color harmony, balance
+                    and lighting.</li>
                 <li><span style="font-weight: bold; color: #e74c3c;">Aim for more polarized ratings</span>: assign a 1
                     to images that are below average and a 7 to those that are exceptionally good.</li>
                 <li>Focus exclusively on the <span style="font-weight: bold; color: #e74c3c;">intrinsic qualities</span>
@@ -289,8 +305,8 @@
                 <ul>
                     <li>Rate each image on a scale from 1 to 7 for its <span
                             style="font-weight: bold; color: #e74c3c;">aesthetics</span>. Aesthetics refer to the visual
-                        appeal and beauty of an image. This includes elements such as composition, color harmony, and
-                        balance.</li>
+                        appeal and beauty of an image. This includes elements such as composition, color harmony,
+                        balance and lighting.</li>
                     <li><span style="font-weight: bold; color: #e74c3c;">Aim for more polarized ratings</span>: assign a
                         1 to images that are below average and a 7 to those that are exceptionally good.</li>
                     <li>Focus exclusively on the <span style="font-weight: bold; color: #e74c3c;">intrinsic
@@ -1001,43 +1017,39 @@
                 const div = document.createElement('div');
                 div.className = 'rating-scale';
                 div.innerHTML = `
-            <div class="scale-labels">
-                <span class="scale-label">Please select ${currentItem.value} for this question</span>
-            </div>
-            <div class="rating-options">
-                ${[1, 2, 3, 4, 5, 6, 7].map(value => `
-                    <div class="rating-option">
-                        <span class="rating-number">${value}</span>
-                        <label>
-                            <input type="radio" name="attention_check" value="${value}">
-                            <span class="radio-circle"></span>
-                        </label>
+                    <span class="scale-label">Please select ${currentItem.value} for this question</span>
+                    <div class="rating-options">
+                        ${[1, 2, 3, 4, 5, 6, 7].map(value => `
+                            <div class="rating-option">
+                                <span class="rating-number">${value}</span>
+                                <label>
+                                    <input type="radio" name="attention_check" value="${value}">
+                                    <span class="radio-circle"></span>
+                                </label>
+                            </div>
+                        `).join('')}
                     </div>
-                `).join('')}
-            </div>
-        `;
+                `;
                 container.appendChild(div);
             } else {
                 scales.forEach(scale => {
                     const div = document.createElement('div');
                     div.className = 'rating-scale';
                     div.innerHTML = `
-                <div class="scale-labels">
-                    <span class="scale-label">Low ${scale.label}</span>
-                    <span class="scale-label">High ${scale.label}</span>
-                </div>
-                <div class="rating-options">
-                    ${[1, 2, 3, 4, 5, 6, 7].map(value => `
-                        <div class="rating-option">
-                            <span class="rating-number">${value}</span>
-                            <label>
-                                <input type="radio" name="${scale.name}" value="${value}">
-                                <span class="radio-circle"></span>
-                            </label>
+                        <span class="scale-label left">Low ${scale.label}</span>
+                        <div class="rating-options">
+                            ${[1, 2, 3, 4, 5, 6, 7].map(value => `
+                                <div class="rating-option">
+                                    <span class="rating-number">${value}</span>
+                                    <label>
+                                        <input type="radio" name="${scale.name}" value="${value}">
+                                        <span class="radio-circle"></span>
+                                    </label>
+                                </div>
+                            `).join('')}
                         </div>
-                    `).join('')}
-                </div>
-            `;
+                        <span class="scale-label right">High ${scale.label}</span>
+                    `;
                     container.appendChild(div);
                 });
             }
