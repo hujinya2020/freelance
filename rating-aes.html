@@ -81,46 +81,44 @@
         }
 
         .rating-scale {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-            background-color: #f9f9f9;
-            padding: 8px;
-            border-radius: 8px;
-            width: 100%;
-        }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
 
-        .scale-labels {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 5px;
-        }
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 5px;
+}
 
-        .scale-label {
-            font-size: 0.8em;
-            color: #555;
-        }
+.scale-label {
+  font-size: 0.9em;
+  color: #555;
+}
 
-        .rating-options {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 400px;
-        }
+.rating-options {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
 
-        .rating-option {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+.rating-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-        .rating-number {
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
+.rating-number {
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+/* Existing styles for radio buttons and circles */
 
         .rating-options label {
             display: flex;
@@ -1203,7 +1201,7 @@
             const instructionsModal = document.getElementById('instructionsModal');
             const closeBtn = document.querySelector('.close');
 
-            let countdown = 20; // LATER
+            let countdown = 0; // LATER
             const timer = setInterval(() => {
                 countdown--;
                 startButton.textContent = `Start Task (${countdown}s)`;
