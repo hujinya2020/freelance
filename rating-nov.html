@@ -264,13 +264,13 @@
                 below:</p>
             <ul>
                 <li>Rate each image on a scale from 1 to 7 for its <span
-                        style="font-weight: bold; color: #e74c3c;">aesthetics</span>. Aesthetics refers to the visual
-                    appeal and beauty of an image. This includes elements such as composition, color harmony, balance
-                    and lighting.</li>
+                        style="font-weight: bold; color: #e74c3c;">novelty</span>. Novelty refers to the
+                    originality, uniqueness, and innovativeness of the image. This can include unexpected elements,
+                    uncommon compositions, or unusual subject matter. </li>
                 <li><span style="font-weight: bold; color: #e74c3c;">Aim for more polarized ratings</span>: assign a 1
                     to images that are below average and a 7 to those that are exceptionally good.</li>
                 <li>Focus exclusively on the <span style="font-weight: bold; color: #e74c3c;">intrinsic qualities</span>
-                    of each image, ignoring factors such as resolution or content topics.</li>
+                    of each image, ignoring factors such as resolution.</li>
                 <li>Maintain consistency throughout your evaluations.</li>
             </ul>
         </div>
@@ -304,14 +304,13 @@
                     outlined below:</p>
                 <ul>
                     <li>Rate each image on a scale from 1 to 7 for its <span
-                            style="font-weight: bold; color: #e74c3c;">aesthetics</span>. Aesthetics refers to the
-                        visual
-                        appeal and beauty of an image. This includes elements such as composition, color harmony,
-                        balance and lighting.</li>
+                            style="font-weight: bold; color: #e74c3c;">novelty</span>. Novelty refers to the
+                        originality, uniqueness, and innovativeness of the image. This can include unexpected elements,
+                        uncommon compositions, or unusual subject matter. </li>
                     <li><span style="font-weight: bold; color: #e74c3c;">Aim for more polarized ratings</span>: assign a
                         1 to images that are below average and a 7 to those that are exceptionally good.</li>
                     <li>Focus exclusively on the <span style="font-weight: bold; color: #e74c3c;">intrinsic
-                            qualities</span> of each image, ignoring factors such as resolution or content topics.</li>
+                            qualities</span> of each image, ignoring factors such as resolution.</li>
                     <li>Maintain consistency throughout your evaluations.</li>
                 </ul>
             </div>
@@ -351,7 +350,7 @@
         let attentionChecks = [];
 
         const scales = [
-            { name: 'Aesthetics', label: 'Aesthetics' },
+            { name: 'Novelty', label: 'Novelty' },
         ];
 
         function generateSessionId() {
@@ -1082,7 +1081,7 @@
         }
 
         function loadExistingRatings() {
-            const imageRef = database.ref(`rating-aes/${sessionId}/Items/item-${currentImageIndex + 1}`);
+            const imageRef = database.ref(`${sessionId}/Items/item-${currentImageIndex + 1}`);
             imageRef.once('value').then((snapshot) => {
                 const data = snapshot.val();
                 if (data) {
