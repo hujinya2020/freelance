@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentence Labeling Task</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: #f0f8ff;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .instructions,
+        .welcome-page,
+        .end-page {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .end-page {
+            text-align: center;
+        }
+
+        .welcome-page h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .main-task {
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        #sentenceProgress {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 1em;
+            color: #2c3e50;
+        }
+
+        .sentence-container {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            font-size: 1.1em;
+        }
+
+        #ratingOptions {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .rating-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .rating-button:hover {
+            background-color: #2980b9;
+        }
+
+        .rating-button.selected {
+            background-color: #2ecc71;
+            transform: scale(1.05);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0 0 0;
+        }
+
+        button {
+            padding: 12px 15px;
+            font-size: 14px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        #prolificId {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .center-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #showInstructionsBtn {
+            margin-bottom: 10px;
+        }
+
+        #instructionsModal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @media (max-height: 600px) {
+            .modal-content {
+                margin: 10px auto;
+                max-height: 95vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="welcome-page" id="welcomePage">
+        <h1>Sentence Labeling Task</h1>
+        <div class="instructions">
+            <p>Welcome to our sentence labeling session! In this task, you will be evaluating 550 sentences from service
+                descriptions of freelancers who are using generative AI as part of their work. </p>
+            <p><u>Please label each sentence on whether this sentence is describing AI expertise or domain expertise, or
+                    neither of them.</p></u>
+            <ul>
+                <li><strong><u>AI expertise:</strong></u> means the knowledge, skills, and experience related to using,
+                    implementing, or understanding artificial intelligence tools and technologies. This includes
+                    familiarity with specific AI models, prompt engineering, fine-tuning AI systems, or integrating AI
+                    into workflows. </li>
+                <li><strong><u>Domain expertise:</strong></u> means the specialized knowledge or skills in a particular
+                    field or industry that is separate from AI. This might include professional experience, technical
+                    skills, or knowledge in areas like marketing, design, or finance, which the freelancer applies in
+                    their work.</li>
+                <li><strong>Consistency is Key:</strong> Some sentences are included as ground-truth references, and
+                    there are duplicate sentences within the task. Inconsistent evaluation or failure to pass attention
+                    checks will result in no payment. Please make sure to maintain the same evaluation criteria
+                    throughout.</li>
+                <li><strong>Reference Examples:</strong> To help you calibrate your evaluation, use the examples below:
+                    <div>
+                        <p><strong>Sentences labeled as AI expertise:</strong></p>
+                        <ul>
+                            <li>My expertise in AI art allows me to bring your ideas to life, giving you a unique and
+                                personal masterpiece that you'll cherish forever</li>
+                            <li>I have experience and skills in using Midjourney AI and other generative AI platforms.
+                            </li>
+                            <li>Programs like Midjourney need a lot of work to give satisfying results</li>
+                        </ul>
+                        <p><strong>Sentences labeled as domain expertise:</strong></p>
+                        <ul>
+                            <li>If you feel your AI content is lacking something, I can fix that</li>
+                            <li>I'll give you articles that read naturally like a human wrote it, because I did</li>
+                            <li>I am a professional UI UX designer with 1.5 years of working experience</li>
+                        </ul>
+                        <p><strong>Sentences labeled as neither of them:</strong></p>
+                        <ul>
+                            <li>Hello, Welcome To My Gig</li>
+                            <li>Thank you for considering my services</li>
+                            <li>You will own all the exploitation rights of the work</li>
+                            <li>If you have any queries, you can contact me through inbox</li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <p>⚠️ <span style="font-weight: bold; color: #e74c3c;">Please do not close or refresh this page once you
+                begin.</span> Doing so will end your session, requiring you to start over from the beginning.</p>
+        <div class="center-content">
+            <input type="text" id="prolificId" placeholder="Enter your Prolific ID" required>
+            <button id="startButton" disabled>Start Task (20s)</button>
+        </div>
+    </div>
+
+    <div class="main-task" id="mainTask" style="display: none;">
+        <button id="showInstructionsBtn">Show Instructions</button>
+        <div id="sentenceProgress"></div>
+        <div class="sentence-container" id="currentSentence"></div>
+        <div id="ratingOptions">
+            <button class="rating-button" onclick="saveRating('AI expertise')">AI expertise</button>
+            <button class="rating-button" onclick="saveRating('Domain Expertise')">Domain Expertise</button>
+            <button class="rating-button" onclick="saveRating('Neither')">Neither</button>
+        </div>
+        <div class="navigation">
+            <button id="prevButton" onclick="showPreviousItem()">Previous</button>
+            <button id="nextButton" onclick="showNextItem()">Next</button>
+        </div>
+    </div>
+
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h1 style="text-align: center;">Sentence Labeling Task</h1>
+            <div class="instructions">
+                <p>Welcome to our sentence labeling session! In this task, you will be evaluating 500 sentences from
+                    service
+                    descriptions of freelancers who are using generative AI as part of their work. </p>
+                <p><u>Please label each sentence on whether this sentence is describing AI expertise or domain
+                        expertise, or
+                        neither of them.</p></u>
+                <ul>
+                    <li><strong><u>AI expertise:</strong></u> means the knowledge, skills, and experience related to
+                        using,
+                        implementing, or understanding artificial intelligence tools and technologies. This includes
+                        familiarity with specific AI models, prompt engineering, fine-tuning AI systems, or integrating
+                        AI
+                        into workflows. </li>
+                    <li><strong><u>Domain expertise:</strong></u> means the specialized knowledge or skills in a
+                        particular
+                        field or industry that is separate from AI. This might include professional experience,
+                        technical
+                        skills, or knowledge in areas like marketing, design, or finance, which the freelancer applies
+                        in
+                        their work.</li>
+                    <li><strong>Consistency is Key:</strong> Some sentences are included as ground-truth references, and
+                        there are duplicate sentences within the task. Inconsistent evaluation or failure to pass
+                        attention
+                        checks will result in no payment. Please make sure to maintain the same evaluation criteria
+                        throughout.</li>
+                    <li><strong>Reference Examples:</strong> To help you calibrate your evaluation, use the examples
+                        below:
+                        <div>
+                            <p><strong>Sentences labeled as AI expertise:</strong></p>
+                            <ul>
+                                <li>My expertise in AI art allows me to bring your ideas to life, giving you a unique
+                                    and
+                                    personal masterpiece that you'll cherish forever</li>
+                                <li>I have experience and skills in using Midjourney AI and other generative AI
+                                    platforms.
+                                </li>
+                                <li>Programs like Midjourney need a lot of work to give satisfying results</li>
+                            </ul>
+                            <p><strong>Sentences labeled as domain expertise:</strong></p>
+                            <ul>
+                                <li>If you feel your AI content is lacking something, I can fix that</li>
+                                <li>I'll give you articles that read naturally like a human wrote it, because I did</li>
+                                <li>I am a professional UI UX designer with 1.5 years of working experience</li>
+                            </ul>
+                            <p><strong>Sentences labeled as neither of them:</strong></p>
+                            <ul>
+                                <li>Hello, Welcome To My Gig</li>
+                                <li>Thank you for considering my services</li>
+                                <li>You will own all the exploitation rights of the work</li>
+                                <li>If you have any queries, you can contact me through inbox</li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="end-page" id="endPage" style="display: none;">
+        <h2>Thank you for your participation!</h2>
+        <p>Your contribution is greatly appreciated. Here is your completion code: <span
+                style="font-weight: bold">CPI0S8HU</span></p>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_IQTZ9seX84jj94ldroWf5FMZ1GZWlec",
+            authDomain: "aifreelance-a91ac.firebaseapp.com",
+            databaseURL: "https://aifreelance-a91ac-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "aifreelance-a91ac",
+            storageBucket: "aifreelance-a91ac.appspot.com",
+            messagingSenderId: "96441731480",
+            appId: "1:96441731480:web:9797d7aaae86aecaa683ed",
+            measurementId: "G-FSDDCEX397"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let sentences = [];
+        let currentSentenceIndex = 0;
+        let sessionId = '';
+        let prolificId = '';
+        let seed;
+        let startTime, endTime;
+        let attentionChecks = [];
+
+        function generateSessionId() {
+            const timestamp = Date.now().toString(36);
+            const randomStr = Math.random().toString(36).substring(2, 7);
+            return `${timestamp}-${randomStr}`;
+        }
+
+        function generateAttentionChecks() {
+            const totalItems = sentences.length + 20; // 500 sentences + 20 attention checks
+            const numChecks = 20;
+            const positions = [];
+
+            while (positions.length < numChecks) {
+                const position = Math.floor(Math.random() * totalItems);
+                if (!positions.includes(position)) {
+                    positions.push(position);
+                }
+            }
+
+            positions.sort((a, b) => a - b);
+
+            attentionChecks = positions.map(position => ({
+                position,
+                correctAnswer: ['AI expertise', 'Domain Expertise', 'Neither'][Math.floor(Math.random() * 3)]
+            }));
+
+            // Insert attention checks into the sentences array
+            attentionChecks.forEach(check => {
+                sentences.splice(check.position, 0, {
+                    isAttentionCheck: true,
+                    sentence: `Attention Check: Please select "${check.correctAnswer}" for this question`,
+                    correctAnswer: check.correctAnswer
+                });
+            });
+        }
+
+        async function loadSentences() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/hujinya2020/freelance/main/Fiverr_product_500sentences.xlsx');
+                const arrayBuffer = await response.arrayBuffer();
+
+                const data = new Uint8Array(arrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Assume the first sheet is the one we want
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+
+                // Convert sheet to JSON
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                // Remove header row
+                const headers = jsonData.shift();
+
+                sentences = jsonData.map(row => ({
+                    file_name: row[0],
+                    product_description_sentence: row[1]
+                }));
+
+                // Shuffle sentences randomly
+                seed = sessionId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+                for (let i = sentences.length - 1; i > 0; i--) {
+                    const j = Math.floor(seedRandom() * (i + 1));
+                    [sentences[i], sentences[j]] = [sentences[j], sentences[i]];
+                }
+
+                generateAttentionChecks();
+                showItem();
+                updateProgress();
+            } catch (error) {
+                console.error('Error loading sentences:', error);
+                alert('There was an error loading the sentences. Please try refreshing the page.');
+            }
+        }
+
+        function seedRandom() {
+            seed = (seed * 9301 + 49297) % 233280;
+            return seed / 233280;
+        }
+
+        function showItem() {
+            const sentenceElement = document.getElementById('currentSentence');
+            const currentItem = sentences[currentSentenceIndex];
+
+            if (currentItem.isAttentionCheck) {
+                sentenceElement.textContent = currentItem.sentence;
+            } else {
+                sentenceElement.textContent = currentItem.product_description_sentence;
+            }
+
+            document.getElementById('prevButton').disabled = currentSentenceIndex === 0;
+            document.getElementById('nextButton').disabled = true;
+            document.getElementById('nextButton').textContent = currentSentenceIndex === sentences.length - 1 ? 'Finish' : 'Next';
+
+            // Reset button styles
+            const buttons = document.querySelectorAll('.rating-button');
+            buttons.forEach(button => button.classList.remove('selected'));
+
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const progressElement = document.getElementById('sentenceProgress');
+            progressElement.textContent = `Progress: ${currentSentenceIndex + 1} / ${sentences.length}`;
+        }
+
+        function saveRating(rating) {
+            const currentItem = sentences[currentSentenceIndex];
+            const sessionRef = database.ref(`sentence-labeling/${sessionId}`);
+            sessionRef.update({
+                ProlificId: prolificId,
+                UniqueIndex: sessionId
+            });
+
+            const itemRef = sessionRef.child(`Items/item-${currentSentenceIndex + 1}`);
+
+            if (currentItem.isAttentionCheck) {
+                const passed = rating === currentItem.correctAnswer;
+
+                itemRef.update({
+                    attention_check: true,
+                    question: currentItem.sentence,
+                    response: rating,
+                    passed: passed
+                });
+            } else {
+                itemRef.update({
+                    'file_name': currentItem.file_name,
+                    'sentence': currentItem.product_description_sentence,
+                    rating: rating
+                });
+            }
+
+            // Update button styles
+            const buttons = document.querySelectorAll('.rating-button');
+            buttons.forEach(button => {
+                if (button.textContent === rating) {
+                    button.classList.add('selected');
+                } else {
+                    button.classList.remove('selected');
+                }
+            });
+
+            document.getElementById('nextButton').disabled = false;
+        }
+
+        function showNextItem() {
+            if (currentSentenceIndex < sentences.length - 1) {
+                currentSentenceIndex++;
+                showItem();
+            } else {
+                endTime = new Date();
+                saveTimingData();
+                showEndPage();
+            }
+        }
+
+        function showPreviousItem() {
+            if (currentSentenceIndex > 0) {
+                currentSentenceIndex--;
+                showItem();
+            }
+        }
+
+        function saveTimingData() {
+            const duration = (endTime - startTime) / 1000; // Duration in seconds
+            const sessionRef = database.ref(`sentence-labeling/${sessionId}`);
+            sessionRef.update({
+                StartTime: startTime.toISOString(),
+                EndTime: endTime.toISOString(),
+                Duration: duration
+            });
+        }
+
+        function showEndPage() {
+            document.getElementById('mainTask').style.display = 'none';
+            document.getElementById('endPage').style.display = 'block';
+
+            const durationInMinutes = ((endTime - startTime) / 60000).toFixed(2);
+            const timingInfo = document.createElement('p');
+            timingInfo.textContent = `You completed the task in ${durationInMinutes} minutes.`;
+            document.getElementById('endPage').insertBefore(timingInfo, document.getElementById('endPage').lastElementChild);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const startButton = document.getElementById('startButton');
+            const prolificIdInput = document.getElementById('prolificId');
+            const welcomePage = document.getElementById('welcomePage');
+            const mainTask = document.getElementById('mainTask');
+            const showInstructionsBtn = document.getElementById('showInstructionsBtn');
+            const instructionsModal = document.getElementById('instructionsModal');
+            const closeBtn = document.querySelector('.close');
+
+            let countdown = 0; //LATER
+            const timer = setInterval(() => {
+                countdown--;
+                startButton.textContent = `Start Task (${countdown}s)`;
+                if (countdown === 0) {
+                    clearInterval(timer);
+                    startButton.textContent = 'Start Task';
+                    startButton.disabled = false;
+                }
+            }, 1000);
+
+            startButton.addEventListener('click', async () => {
+                if (prolificIdInput.value.trim() !== '') {
+                    prolificId = prolificIdInput.value.trim();
+                    sessionId = generateSessionId();
+                    welcomePage.style.display = 'none';
+                    mainTask.style.display = 'block';
+                    startTime = new Date();
+                    await loadSentences();
+                } else {
+                    alert('Please enter your Prolific ID before starting the task.');
+                }
+            });
+
+            prolificIdInput.addEventListener('input', () => {
+                startButton.disabled = prolificIdInput.value.trim() === '' || countdown > 0;
+            });
+
+            showInstructionsBtn.addEventListener('click', () => {
+                instructionsModal.style.display = 'block';
+            });
+
+            closeBtn.addEventListener('click', () => {
+                instructionsModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target == instructionsModal) {
+                    instructionsModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>
